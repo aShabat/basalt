@@ -89,6 +89,6 @@ if (process.argv.length > 2) {
     outputPath: process.argv[2],
     preDeleteOutputFolder: true,
     tsModuleFormat: "esm",
-    preRenderHooks: [kanel_kysely.makeKyselyHook()],
+    preRenderHooks: [kanel_kysely.makeKyselyHook(), kanel.generateIndexFile],
   })
 }
