@@ -1,15 +1,23 @@
 import jwt from "jsonwebtoken"
-import config from "./config.js"
 import type { NextFunction, Response, Request } from "express"
-import type { User } from "./types.js"
+import config from "../config.ts"
+import { User } from "../schemas/types.ts"
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: User
+    }
+  }
+}
 
 export function sign(user: User) {
-  return jwt.sign(user, config.JWT_SECRET, { expiresIn: 60 * 60 })
+  return jwt.sign(user, config.jwt_key, { expiresIn: 3 * 24 * 60 * 60 })
 }
 
 export function verify(token: string) {
   try {
-    return jwt.verify(token, config.JWT_SECRET) as User
+    return User.parse(jwt.verify(token, config.jwt_key))
   } catch (err) {
     return undefined
   }
