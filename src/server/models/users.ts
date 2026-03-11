@@ -12,7 +12,7 @@ export async function getUser(id: number) {
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
     const { encrypted_password } = result[0]
-    return { user: User.parse(result[0]), encrypted_password }
+    return { user: result[0], encrypted_password }
   } catch (err) {
     console.log("error in getUser")
     console.log(err)
@@ -28,7 +28,7 @@ export async function getUserByName(name: string) {
       .execute()
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
-    return User.parse(result[0])
+    return result[0]
   } catch (err) {
     console.log("error in getUserByName")
     console.log(err)
@@ -48,7 +48,7 @@ export async function createUser(name: string, encrypted_password: string) {
 
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
-    return User.parse(result[0])
+    return result[0]
   } catch (err) {
     console.log("error in createNote")
     console.log(err)
@@ -79,7 +79,7 @@ export async function alterUser(id: number, encrypted_password: string) {
 
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
-    return User.parse(result[0])
+    return result[0]
   } catch (err) {
     console.log("error in alterUser")
     console.log(err)

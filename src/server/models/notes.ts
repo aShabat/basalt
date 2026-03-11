@@ -1,4 +1,3 @@
-import { Note } from "../../schemas/types.ts"
 import { db } from "./db.ts"
 import { FoldersId, NotesId, UsersId } from "./generated/index.ts"
 
@@ -9,7 +8,7 @@ export async function getUserNotes(user_id: number) {
       .where("user_id", "=", user_id as UsersId)
       .selectAll()
       .execute()
-    return result.map((n) => Note.parse(n))
+    return result
   } catch (err) {
     console.log("error in getUserNotes")
     console.log(err)
@@ -25,7 +24,7 @@ export async function getNote(id: number) {
       .execute()
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
-    return Note.parse(result[0])
+    return result[0]
   } catch (err) {
     console.log("error in getNote")
     console.log(err)
@@ -52,7 +51,7 @@ export async function createNote(
 
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
-    return Note.parse(result[0])
+    return result[0]
   } catch (err) {
     console.log("error in createNote")
     console.log(err)
@@ -90,7 +89,7 @@ export async function alterNote(
     const result = await query.execute()
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
-    return Note.parse(result[0])
+    return result[0]
   } catch (err) {
     console.log("error in alterNote")
     console.log(err)
