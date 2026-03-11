@@ -15,7 +15,7 @@ export async function getUserFolders(user_id: number) {
   }
 }
 
-export async function getFolders(id: number) {
+export async function getFolder(id: number) {
   try {
     const result = await db
       .selectFrom("folders")
