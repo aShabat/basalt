@@ -71,6 +71,9 @@ await db.schema
   .addColumn("id", "integer", (col) =>
     col.generatedAlwaysAsIdentity().primaryKey(),
   )
+  .addColumn("user_id", "integer", (col) =>
+    col.notNull().references("users.id"),
+  )
   .addColumn("from_id", "integer", (col) =>
     col.notNull().references("notes.id"),
   )
