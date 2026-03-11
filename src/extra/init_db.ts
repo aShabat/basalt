@@ -71,10 +71,10 @@ await db.schema
   .addColumn("id", "integer", (col) =>
     col.generatedAlwaysAsIdentity().primaryKey(),
   )
-  .addColumn("from_id", "integer", (col) =>
-    col.notNull().references("notes.id"),
+  .addColumn("user_id", "integer", (col) =>
+    col.notNull().references("users.id"),
   )
-  .addColumn("to_id", "integer", (col) => col.references("notes.id"))
+  .addColumn("from_url", "text", (col) => col.notNull())
   .addColumn("to_url", "text", (col) => col.notNull())
   .execute()
 
