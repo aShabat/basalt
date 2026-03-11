@@ -1,19 +1,18 @@
-import { configDotenv } from "dotenv"
+import config from "../config.ts"
 import { Kysely, PostgresDialect } from "kysely"
 import { Pool } from "pg"
 import kanel from "kanel"
 import kanel_kysely from "kanel-kysely"
 
-configDotenv()
-
 interface DB {}
 
 const dialect = new PostgresDialect({
   pool: new Pool({
-    database: process.env.DATABASE_DB,
-    host: process.env.DATABASE_URL,
-    user: process.env.DATABASE_USER,
-    port: +(process.env.DATABASE_PORT || 5432),
+    database: config.database_db,
+    host: config.database_host,
+    user: config.database_user,
+    port: config.database_port,
+    password: config.database_password,
   }),
 })
 const db = new Kysely<DB>({ dialect })
