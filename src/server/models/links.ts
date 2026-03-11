@@ -3,12 +3,16 @@ import { NotesId, UsersId } from "./generated/index.ts"
 
 export async function getUserLinks(user_id: number) {
   try {
-    const result = await db
+    return await db
       .selectFrom("links")
-      .where("user_id", "=", user_id as UsersId)
+      .where("from_id", "in", (eb) =>
+        eb
+          .selectFrom("notes")
+          .select("notes.id")
+          .where("user_id", "=", user_id as UsersId),
+      )
       .selectAll()
       .execute()
-    return result
   } catch (err) {
     console.log("error in getUserLinks")
     console.log(err)
