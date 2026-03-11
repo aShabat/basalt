@@ -10,4 +10,5 @@ export default {
   database_password: process.env.DATABASE_PASSWORD,
 
   jwt_key: process.env.JWT_KEY || "test_jwt_key",
+  bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS || 13,
 }

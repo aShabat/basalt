@@ -1,4 +1,3 @@
-import { User } from "../../schemas/types.ts"
 import { db } from "./db.ts"
 import { UsersId } from "./generated/index.ts"
 

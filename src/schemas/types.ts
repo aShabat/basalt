@@ -10,7 +10,7 @@ export type User = z.infer<typeof User>
 export const Note = z.object({
   id: z.number(),
   user_id: z.number(),
-  parent_id: z.number(),
+  folder_id: z.number().optional(),
   title: z.string(),
   content: z.string(),
 })
@@ -37,7 +37,15 @@ export type Folder = z.infer<typeof Folder>
 
 export const RootFolder = GeneralFolder.safeExtend({
   id: z.undefined(),
+  parent_id: z.undefined(),
   title: z.undefined(),
 })
 
 export type RootFolder = z.infer<typeof RootFolder>
+
+export const Graph = z.object({
+  points: z.array(z.string()),
+  edges: z.array(
+    z.object({ from: z.number(), to: z.number(), weight: z.number() }),
+  ),
+})

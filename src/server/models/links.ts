@@ -1,16 +1,12 @@
+import { sql } from "kysely"
 import { db } from "./db.ts"
-import { NotesId, UsersId } from "./generated/index.ts"
+import { UsersId } from "./generated/index.ts"
 
 export async function getUserLinks(user_id: number) {
   try {
     return await db
       .selectFrom("links")
-      .where("from_id", "in", (eb) =>
-        eb
-          .selectFrom("notes")
-          .select("notes.id")
-          .where("user_id", "=", user_id as UsersId),
-      )
+      .where("user_id", "=", user_id as UsersId)
       .selectAll()
       .execute()
   } catch (err) {
@@ -19,23 +15,24 @@ export async function getUserLinks(user_id: number) {
   }
 }
 
+export async function deleteLinks(from_url: string) {
+  await db.deleteFrom("links").where("from_url", "=", from_url).execute()
+}
+
 export async function createLinks(
-  user_id: number,
-  from_id: number,
-  to_ids: number[],
+  user_id: UsersId,
+  from_url: string,
+  to_urls: string[],
 ) {
   try {
-    await db
-      .deleteFrom("links")
-      .where("from_id", "=", from_id as NotesId)
-      .execute()
+    await deleteLinks(from_url)
     return await db
       .insertInto("links")
       .values(
-        to_ids.map((to_id) => ({
+        to_urls.map((to_url) => ({
           user_id: user_id as UsersId,
-          from_id: from_id as NotesId,
-          to_id: to_id as NotesId,
+          from_url: from_url,
+          to_url: to_url,
         })),
       )
       .returningAll()
