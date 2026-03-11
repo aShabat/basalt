@@ -9,5 +9,5 @@ export default {
   database_port: +(process.env.DATABASE_port || 5432),
   database_password: process.env.DATABASE_PASSWORD,
 
-  jwt_key: process.env.JWT_KEY,
+  jwt_key: process.env.JWT_KEY || "test_jwt_key",
 }
