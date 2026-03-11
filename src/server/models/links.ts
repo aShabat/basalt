@@ -1,42 +1,43 @@
-import { ApiLink } from "../types.ts"
-import sql from "./sql.ts"
+import { db } from "./db.ts"
+import { NotesId, UsersId } from "./generated/index.ts"
 
-interface Link {
-  is_global: boolean
-  path: string
-}
-function findLinks(content: string): Link[] {
-  const reg = /\[[^\[\]]*\]\(([\w\-_/]+)\)/g
-  return Array.from(
-    content.matchAll(reg).map((c) => {
-      return { is_global: c[1][0] === "/", path: c[1] }
-    }),
-  )
-}
-
-export async function genLinks(user_id: number, path: string, content: string) {
-  await sql.query("delete from links where user_id = $1 and path_from = $2", [
-    user_id,
-    path,
-  ])
-
-  const folder_path = path.slice(0, path.lastIndexOf("/") + 1)
-  for (const link of findLinks(content)) {
-    await sql.query(
-      "insert into links (user_id, path_from, path_to) values ($1, $2, $3)",
-      [user_id, path, link.is_global ? link.path : folder_path + link.path],
-    )
+export async function getUserLinks(user_id: number) {
+  try {
+    const result = await db
+      .selectFrom("links")
+      .where("user_id", "=", user_id as UsersId)
+      .selectAll()
+      .execute()
+    return result
+  } catch (err) {
+    console.log("error in getUserLinks")
+    console.log(err)
   }
 }
 
-export async function getLinks(user: number) {
-  const links = await sql.query(
-    "select path_from, path_to, count(1) as weight from links where user_id = $1 group by path_from, path_to",
-    [user],
-  )
-  return links.map(({ path_from, path_to, weight }) => ({
-    from: path_from,
-    to: path_to,
-    weight: +weight,
-  })) as ApiLink[]
+export async function createLinks(
+  user_id: number,
+  from_id: number,
+  to_ids: number[],
+) {
+  try {
+    await db
+      .deleteFrom("links")
+      .where("from_id", "=", from_id as NotesId)
+      .execute()
+    return await db
+      .insertInto("links")
+      .values(
+        to_ids.map((to_id) => ({
+          user_id: user_id as UsersId,
+          from_id: from_id as NotesId,
+          to_id: to_id as NotesId,
+        })),
+      )
+      .returningAll()
+      .execute()
+  } catch (err) {
+    console.log("error in createLinks")
+    console.log(err)
+  }
 }
