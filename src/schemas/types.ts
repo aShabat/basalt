@@ -1,5 +1,9 @@
 import z from "zod"
 
+function preprocessLiteral<T extends string>(literal_value: T) {
+  return z.preprocess((val) => val || literal_value, z.literal(literal_value))
+}
+
 export const User = z.object({
   id: z.number(),
   name: z.string(),
@@ -8,7 +12,7 @@ export const User = z.object({
 export type User = z.infer<typeof User>
 
 export const Note = z.object({
-  kind: z.literal("note"),
+  kind: preprocessLiteral("note"),
   id: z.number(),
   title: z.string(),
   parent_id: z.number(),
@@ -18,7 +22,6 @@ export const Note = z.object({
 export type Note = z.infer<typeof Note>
 
 const GeneralFolder = z.object({
-  kind: z.string(),
   id: z.number().optional(),
   title: z.string().optional(),
   parent_id: z.number().optional(),
@@ -29,7 +32,7 @@ const GeneralFolder = z.object({
 })
 
 export const Folder = GeneralFolder.safeExtend({
-  kind: z.literal("folder"),
+  kind: preprocessLiteral("folder"),
   id: z.number(),
   title: z.string(),
 })
@@ -37,7 +40,7 @@ export const Folder = GeneralFolder.safeExtend({
 export type Folder = z.infer<typeof Folder>
 
 export const RootFolder = GeneralFolder.safeExtend({
-  kind: z.literal("root"),
+  kind: preprocessLiteral("root"),
   id: z.undefined(),
   title: z.undefined(),
 })
