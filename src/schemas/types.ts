@@ -14,8 +14,9 @@ export type User = z.infer<typeof User>
 export const Note = z.object({
   kind: preprocessLiteral("note"),
   id: z.number(),
-  title: z.string(),
+  user_id: z.number(),
   parent_id: z.number(),
+  title: z.string(),
   content: z.string(),
 })
 
@@ -23,8 +24,9 @@ export type Note = z.infer<typeof Note>
 
 const GeneralFolder = z.object({
   id: z.number().optional(),
-  title: z.string().optional(),
+  user_id: z.number(),
   parent_id: z.number().optional(),
+  title: z.string().optional(),
   get children() {
     return z.array(Folder)
   },
