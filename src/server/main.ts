@@ -3,8 +3,8 @@ import ViteExpress from "vite-express"
 import cookieParser from "cookie-parser"
 
 import userRouter from "./routes/user.ts"
-import noteRouter from "./routes/notes.ts"
-import folderRouter from "./routes/links.ts"
+import noteRouter from "./routes/note.ts"
+import folderRouter from "./routes/folder.ts"
 import { authMiddleware } from "./auth.ts"
 import { HttpStatusCode } from "axios"
 
