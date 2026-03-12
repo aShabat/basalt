@@ -10,8 +10,7 @@ export async function getUser(id: number) {
       .execute()
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
-    const { encrypted_password } = result[0]
-    return { user: result[0], encrypted_password }
+    return result[0]
   } catch (err) {
     console.log("error in getUser")
     console.log(err)
