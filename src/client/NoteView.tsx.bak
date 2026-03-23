@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router"
 import { getNote, postNote } from "./api"
 import UserContext from "./UserContext"
 import Props from "./Props"
-import Graph from "./Graph"
+import Graph from "./Graph.tsx.bak"
 
 interface EditorProps extends Props {
   serverNote?: string

@@ -1,17 +1,18 @@
-import { useContext, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router"
 import { postUserNew } from "./api"
-import UserContext from "./UserContext"
 import Props from "./Props"
+import { useDispatch } from "react-redux"
+import Navbar from "./Navbar.tsx.bak"
 
 interface SignUpProps extends Props {}
-export default function SignUp({ className, style }: SignUpProps) {
-  const [_, setUser] = useContext(UserContext)
+export default function SignUp({ className }: SignUpProps) {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [secondPassword, setSecondPassword] = useState("")
   const [error, setError] = useState("")
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   function validateInput() {
     if (password !== secondPassword) {
@@ -31,7 +32,7 @@ export default function SignUp({ className, style }: SignUpProps) {
     try {
       const { status, user } = await postUserNew(name, password)
       if (status === 200) {
-        setUser(user)
+        dispatch({ type: "auth/login", payload: user })
         navigate(`/${name}/notes`)
       } else {
         setError("Signup error")
@@ -42,7 +43,8 @@ export default function SignUp({ className, style }: SignUpProps) {
     }
   }
   return (
-    <div className={className} style={style}>
+    <div className={className}>
+      <Navbar />
       {error !== "" && <div> {error} </div>}
       <label>Name: </label>
       <input

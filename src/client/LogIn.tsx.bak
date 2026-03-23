@@ -1,16 +1,17 @@
-import { useContext, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router"
 import { postUser } from "./api"
-import UserContext from "./UserContext"
 import Props from "./Props"
+import { useDispatch } from "react-redux"
+import Navbar from "./Navbar"
 
 interface LogInProps extends Props {}
-export default function LogIn({ className, style }: LogInProps) {
-  const [_, setUser] = useContext(UserContext)
+export default function LogIn({ className }: LogInProps) {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   // @ts-ignore
   async function handleSubmit(event) {
@@ -18,7 +19,7 @@ export default function LogIn({ className, style }: LogInProps) {
       event.preventDefault()
       const { status, user } = await postUser(name, password)
       if (status === 200) {
-        setUser(user)
+        dispatch({ type: "auth/login", payload: user })
         navigate(`/${name}`)
       } else {
         setError("Wrong account name or password.")
@@ -29,7 +30,8 @@ export default function LogIn({ className, style }: LogInProps) {
   }
 
   return (
-    <div className={className} style={style}>
+    <div className={className}>
+      <Navbar />
       {error !== "" && <div> {error} </div>}
       <label>Name: </label>
       <input
