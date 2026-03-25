@@ -1,21 +1,10 @@
 import { HttpStatusCode } from "axios"
 import { Router } from "express"
-import { alterNote, createNote, deleteNote, getNote } from "../models/notes.ts"
-import { Folder, Note } from "../../schemas/types.ts"
-import {
-  CreateFolder,
-  CreateNote,
-  UpdateFolder,
-  UpdateNote,
-} from "../../schemas/api.ts"
-import {
-  alterFolder,
-  createFolder,
-  deleteFolder,
-  getFolder,
-} from "../models/folders.ts"
+import { getNote } from "../models/notes.ts"
+import { CreateFolder, UpdateFolder } from "../../schemas/api.ts"
+import { alterFolder, createFolder, deleteFolder } from "../models/folders.ts"
 
-const router = Router().use("/user/:user_id/note")
+const router = Router()
 
 // router.get("/:folder_id", async (req, res) => {
 //   const folder_id = +req.params.folder_id

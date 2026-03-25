@@ -4,7 +4,7 @@ import { alterNote, createNote, deleteNote, getNote } from "../models/notes.ts"
 import { Note } from "../../schemas/types.ts"
 import { CreateNote, UpdateNote } from "../../schemas/api.ts"
 
-const router = Router().use("/user/:user_id/note")
+const router = Router()
 
 router.get("/:note_id", async (req, res) => {
   const note_id = +req.params.note_id
