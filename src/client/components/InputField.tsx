@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useState } from "react"
 
 interface Props {
-  name: string
+  name?: string
   handleInput: Function
 }
 
