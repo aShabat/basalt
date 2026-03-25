@@ -1,58 +1,45 @@
-import axios from "axios"
-import type { ApiFolder, ApiLink, ApiPostNote } from "../server/types"
+import axios, { HttpStatusCode } from "axios"
+import { User } from "../schemas/types"
+import { LogIn } from "../schemas/api"
 
 const axiosI = axios.create({ baseURL: "/api" })
 
 export async function getUser() {
   const response = await axiosI.get("/user")
-  if (response.status === 200) {
-    return response.data as string
-  } else {
-    return undefined
+  if (response.status !== HttpStatusCode.Ok) return
+  try {
+    return User.parse(response.data)
+  } catch (err) {
+    console.log(err)
   }
 }
 
-export async function postUser(name: string, password: string) {
-  const response = await axiosI.post("/user", { name, password })
-  return {
-    status: response.status,
-    user: response.status === 200 ? (response.data as string) : undefined,
+export async function postUserLogin(name: string, password: string) {
+  const requestBody = LogIn.parse({ name, password })
+  const response = await axiosI.post("/user/login", requestBody)
+  if (response.status !== HttpStatusCode.Ok) {
+    return
+  }
+  try {
+    return User.parse(response.data)
+  } catch (err) {
+    console.log(err)
   }
 }
 
-export async function postUserNew(name: string, password: string) {
-  const response = await axiosI.post("/user/new", { name, password })
-  return {
-    status: response.status,
-    user: response.status === 200 ? (response.data as string) : undefined,
+export async function postUserSignup(name: string, password: string) {
+  const requestBody = LogIn.parse({ name, password })
+  const response = await axiosI.post("/user/signup", requestBody)
+  if (response.status !== HttpStatusCode.Ok) {
+    return
+  }
+  try {
+    return User.parse(response.data)
+  } catch (err) {
+    console.log(err)
   }
 }
 
-export async function postLogout() {
-  axiosI.post("/user/logout")
-}
-
-export async function getFolder(name: string) {
-  const response = await axiosI.get(`/notes/${name}`)
-  if (response.status !== 200) return undefined
-  const data = response.data as ApiFolder
-  return data
-}
-
-export async function getNote(user: string, path: string) {
-  const response = await axiosI.get(`/notes/${user}/${path}`)
-  return response.data as string
-}
-
-export async function postNote(user: string, path: string, note: ApiPostNote) {
-  const response = await axiosI.post(
-    `/notes/${user}${path === "" ? "" : "/" + path}`,
-    note,
-  )
-  return response.status
-}
-
-export async function getLinks(user: string) {
-  const response = await axiosI.get(`/links/${user}`)
-  return response.data as ApiLink[]
+export async function deleteLogout() {
+  const response = await axiosI.delete("/user/logout")
 }
