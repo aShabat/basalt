@@ -8,18 +8,20 @@ import {
   getTree,
   getUser,
 } from "../api"
-import { useNavigate, useParams } from "react-router"
+import { useLocation, useNavigate, useParams } from "react-router"
 import { useAppSelector } from "../store/store"
 import InputField from "./InputField"
 
 interface TreeContextState {
   currentUser?: User
+  currentPath: string[]
   isEditable: boolean
   setRootFolder: Function
   setReloadFlag: Function
 }
 
 const TreeContext = createContext<TreeContextState>({
+  currentPath: [],
   isEditable: false,
   setRootFolder: () => {},
   setReloadFlag: () => {},
@@ -27,11 +29,13 @@ const TreeContext = createContext<TreeContextState>({
 
 export default function () {
   const { name } = useParams()
+  const location = useLocation()
   const [currentUser, setCurrentUser] = useState<User>()
   const [rootFolder, setRootFolder] = useState<RootFolder>()
   const [reloadFlag, setReloadFlag] = useState(false)
   const [newFolderFlag, setNewFolderFlag] = useState(false)
   const [newNoteFlag, setNewNoteFlag] = useState(false)
+  const navigate = useNavigate()
   const user = useAppSelector(({ auth }) => auth.user)
   const isEditable = currentUser?.id === user?.id
 
@@ -66,6 +70,29 @@ export default function () {
     })()
   }, [currentUser])
 
+  useEffect(() => {
+    if (!rootFolder) return
+    const path = location.pathname.split("/").slice(1)
+    let folder: RootFolder | Folder = rootFolder
+    for (let i = 1; i < path.length; i++) {
+      const nextFolder: number = folder.children.findIndex(
+        (c) => c.title === path[i],
+      )
+      if (nextFolder > -1) {
+        folder = folder.children[nextFolder]
+        continue
+      }
+      const nextNote = folder.notes.findIndex((n) => n.title === path[i])
+      if (nextNote > -1) {
+        if (i + 1 !== path.length)
+          navigate(`/${path.slice(0, i + 1).join("/")}`)
+        break
+      }
+
+      navigate(`/${path.slice(0, i).join("/")}`)
+    }
+  }, [location, rootFolder])
+
   const folders = rootFolder?.children
     .toSorted((a, b) => (a.title < b.title ? -1 : 1))
     .map((c) => (
@@ -83,7 +110,13 @@ export default function () {
 
   return (
     <TreeContext
-      value={{ currentUser, setRootFolder, isEditable, setReloadFlag }}
+      value={{
+        currentUser,
+        currentPath: location.pathname.split("/").slice(1),
+        setRootFolder,
+        isEditable,
+        setReloadFlag,
+      }}
     >
       <div id="root_folder">
         {rootFolder ? (
@@ -115,6 +148,14 @@ export default function () {
   )
 }
 
+function isOnPath(path: string[], currentPath: string[]) {
+  if (path.length > currentPath.length) return false
+  for (let i = 0; i < path.length; i++) {
+    if (path[i] !== currentPath[i]) return false
+  }
+  return true
+}
+
 interface FolderRowProps {
   folder: Folder
   path: string[]
@@ -122,10 +163,13 @@ interface FolderRowProps {
 export function FolderRow({ folder, path: propPath }: FolderRowProps) {
   const path = [...propPath, folder.title]
 
-  const { currentUser, setRootFolder, isEditable } = useContext(TreeContext)
-  const [fold, setFold] = useState(true)
+  const { currentUser, setRootFolder, isEditable, currentPath } =
+    useContext(TreeContext)
   const [newFolderFlag, setNewFolderFlag] = useState(false)
   const [newNoteFlag, setNewNoteFlag] = useState(false)
+
+  const initialFold = isOnPath(path, currentPath)
+  const [fold, setFold] = useState(!initialFold)
 
   const children = folder.children.map((c) => (
     <Fragment key={c.id}>
