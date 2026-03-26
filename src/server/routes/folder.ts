@@ -6,23 +6,6 @@ import { alterFolder, createFolder, deleteFolder } from "../models/folders.ts"
 
 const router = Router()
 
-// router.get("/:folder_id", async (req, res) => {
-//   const folder_id = +req.params.folder_id
-//   if (!folder_id) {
-//     res.status(HttpStatusCode.BadRequest).send("folder_id should be a number")
-//     return
-//   }
-//
-//   const note = await getFolder(folder_id)
-//   if (!note) {
-//     res
-//       .status(HttpStatusCode.BadRequest)
-//       .send("couldn't find the note with this id")
-//     return
-//   }
-//   res.json(Folder.parse(note))
-// })
-
 router.put("/", async (req, res) => {
   const { parent_id, title } = CreateFolder.parse(req.body)
   const user_id = req.path_user_id!
@@ -36,7 +19,7 @@ router.put("/", async (req, res) => {
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the folder")
   }
-  res.redirect("/api/user/tree")
+  res.sendStatus(HttpStatusCode.Ok)
 })
 
 router.post("/:folder_id", async (req, res) => {

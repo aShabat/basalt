@@ -24,6 +24,7 @@ router.get("/:note_id", async (req, res) => {
 })
 
 router.put("/", async (req, res) => {
+  console.log(req.body)
   const { folder_id, title, content } = CreateNote.parse(req.body)
   const user_id = req.path_user_id!
   if (!req.user || req.user.id !== user_id) {
@@ -36,7 +37,7 @@ router.put("/", async (req, res) => {
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the note")
   }
-  res.json(Note.parse(result))
+  res.json(Note.parse({ ...result, folder_id: result?.folder_id || undefined }))
 })
 
 router.post("/:note_id", async (req, res) => {

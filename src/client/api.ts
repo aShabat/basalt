@@ -1,6 +1,6 @@
 import axios, { HttpStatusCode } from "axios"
 import { RootFolder, User } from "../schemas/types"
-import { CreateFolder, LogIn } from "../schemas/api"
+import { CreateFolder, CreateNote, LogIn } from "../schemas/api"
 
 const axiosI = axios.create({ baseURL: "/api" })
 
@@ -71,9 +71,18 @@ export async function createFolder(
   if (response.status !== HttpStatusCode.Ok) {
     return
   }
-  try {
-    return RootFolder.parse(response.data)
-  } catch (err) {
-    console.log(err)
+  return await getTree({ id: user_id })
+}
+
+export async function createNote(
+  user_id: number,
+  folder_id: number | undefined,
+  title: string,
+) {
+  const requestBody = CreateNote.parse({ folder_id, title, content: "" })
+  const response = await axiosI.put(`/note/${user_id}`, requestBody)
+  if (response.status !== HttpStatusCode.Ok) {
+    return
   }
+  return await getTree({ id: user_id })
 }
