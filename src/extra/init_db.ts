@@ -37,9 +37,11 @@ await db.schema
     col.generatedAlwaysAsIdentity().primaryKey(),
   )
   .addColumn("user_id", "integer", (col) =>
-    col.notNull().references("users.id"),
+    col.notNull().references("users.id").onDelete("cascade"),
   )
-  .addColumn("parent_id", "integer", (col) => col.references("folders.id"))
+  .addColumn("parent_id", "integer", (col) =>
+    col.references("folders.id").onDelete("cascade"),
+  )
   .addColumn("title", "text", (col) => col.notNull())
   .addUniqueConstraint(
     "unique_user_parent_title",
@@ -54,9 +56,11 @@ await db.schema
     col.generatedAlwaysAsIdentity().primaryKey(),
   )
   .addColumn("user_id", "integer", (col) =>
-    col.notNull().references("users.id"),
+    col.notNull().references("users.id").onDelete("cascade"),
   )
-  .addColumn("folder_id", "integer", (col) => col.references("folders.id"))
+  .addColumn("folder_id", "integer", (col) =>
+    col.references("folders.id").onDelete("cascade"),
+  )
   .addColumn("title", "text", (col) => col.notNull())
   .addColumn("content", "text", (col) => col.notNull())
   .addUniqueConstraint(
@@ -72,7 +76,7 @@ await db.schema
     col.generatedAlwaysAsIdentity().primaryKey(),
   )
   .addColumn("user_id", "integer", (col) =>
-    col.notNull().references("users.id"),
+    col.notNull().references("users.id").onDelete("cascade"),
   )
   .addColumn("from_url", "text", (col) => col.notNull())
   .addColumn("to_url", "text", (col) => col.notNull())
