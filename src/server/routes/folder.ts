@@ -52,7 +52,7 @@ router.post("/:folder_id", async (req, res) => {
     res.status(HttpStatusCode.BadRequest).send("couldn't alter the note")
     return
   }
-  res.redirect("/api/user/tree")
+  res.sendStatus(HttpStatusCode.Ok)
 })
 
 router.delete("/:folder_id", async (req, res) => {
@@ -71,7 +71,7 @@ router.delete("/:folder_id", async (req, res) => {
   }
 
   const result = await deleteFolder(folder_id)
-  if (result) res.redirect("/api/user/tree")
+  if (result) res.sendStatus(HttpStatusCode.Ok)
   else res.sendStatus(HttpStatusCode.BadRequest)
 })
 
