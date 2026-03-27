@@ -105,6 +105,7 @@ export default function ({ setCurrentNote }: Props) {
       }
 
       navigate(`/${path.slice(0, i).join("/")}`)
+      setCurrentNote(undefined)
     }
   }, [location, rootFolder])
 
@@ -222,16 +223,18 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
         {isEditable && (
           <>
             <button
-              onClick={() => {
-                setFold(true)
+              onClick={(e) => {
+                e.stopPropagation()
+                setFold(false)
                 setNewFolderFlag(true)
               }}
             >
               new folder
             </button>
             <button
-              onClick={() => {
-                setFold(true)
+              onClick={(e) => {
+                e.stopPropagation()
+                setFold(false)
                 setNewNoteFlag(true)
               }}
             >
@@ -247,7 +250,9 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
             <InputField
               name="folder_title"
               handleInput={handleNewFolder}
-              handleCancel={() => setNewFolderFlag(false)}
+              handleCancel={() => {
+                setNewFolderFlag(false)
+              }}
             />
           )}
           {children}
