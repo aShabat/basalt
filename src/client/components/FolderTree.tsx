@@ -5,6 +5,7 @@ import {
   createNote,
   deleteFolder,
   deleteNote,
+  getNote,
   getTree,
   getUser,
 } from "../api"
@@ -18,6 +19,7 @@ interface TreeContextState {
   isEditable: boolean
   setRootFolder: Function
   setReloadFlag: Function
+  setCurrentNote: Function
 }
 
 const TreeContext = createContext<TreeContextState>({
@@ -25,9 +27,13 @@ const TreeContext = createContext<TreeContextState>({
   isEditable: false,
   setRootFolder: () => {},
   setReloadFlag: () => {},
+  setCurrentNote: () => {},
 })
 
-export default function () {
+interface Props {
+  setCurrentNote: Function
+}
+export default function ({ setCurrentNote }: Props) {
   const { name } = useParams()
   const location = useLocation()
   const [currentUser, setCurrentUser] = useState<User>()
@@ -71,7 +77,7 @@ export default function () {
   }, [currentUser])
 
   useEffect(() => {
-    if (!rootFolder) return
+    if (!rootFolder || !currentUser) return
     const path = location.pathname.split("/").slice(1)
     let folder: RootFolder | Folder = rootFolder
     for (let i = 1; i < path.length; i++) {
@@ -86,6 +92,15 @@ export default function () {
       if (nextNote > -1) {
         if (i + 1 !== path.length)
           navigate(`/${path.slice(0, i + 1).join("/")}`)
+        else {
+          ;(async () => {
+            const currentNote = await getNote(
+              currentUser.id,
+              folder.notes[nextNote].id,
+            )
+            setCurrentNote(currentNote)
+          })()
+        }
         break
       }
 
@@ -116,6 +131,7 @@ export default function () {
         setRootFolder,
         isEditable,
         setReloadFlag,
+        setCurrentNote,
       }}
     >
       <div id="root_folder">

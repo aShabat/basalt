@@ -80,11 +80,15 @@ export async function alterNote(
   try {
     let query = db
       .updateTable("notes")
+      .set({
+        folder_id: folder_id ? (folder_id as FoldersId) : undefined,
+        title,
+        content,
+      })
       .where("id", "=", id as NotesId)
       .returningAll()
-    query = folder_id ? query.set("folder_id", folder_id as FoldersId) : query
-    query = title ? query.set("title", title) : query
-    query = content ? query.set("content", content) : query
+
+    console.log(query.compile().parameters)
 
     const result = await query.execute()
     if (result.length !== 1)
