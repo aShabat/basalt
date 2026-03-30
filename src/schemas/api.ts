@@ -1,5 +1,5 @@
 import z from "zod"
-import { Folder, Graph, Note, RootFolder, User } from "./types.js"
+import { Folder, Note } from "./types.js"
 
 export const SignUp = z.object({
   name: z.string(),
@@ -11,13 +11,13 @@ export const LogIn = z.object({
   password: z.string(),
 })
 
-export const UserData = z.object({
-  user: User,
-  root_folder: RootFolder,
-  graph: Graph,
+export const CreateNote = Note.omit({
+  id: true,
+  user_id: true,
+  date_added: true,
+  date_updated: true,
+  path: true,
 })
-
-export const CreateNote = Note.omit({ id: true, user_id: true })
 export const UpdateNote = CreateNote.partial()
 
 export const CreateFolder = Folder.omit({
@@ -25,5 +25,8 @@ export const CreateFolder = Folder.omit({
   user_id: true,
   children: true,
   notes: true,
+  date_added: true,
+  date_updated: true,
+  path: true,
 })
 export const UpdateFolder = CreateFolder.partial()

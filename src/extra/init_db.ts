@@ -3,7 +3,6 @@ import { Kysely, PostgresDialect, sql } from "kysely"
 import { Pool } from "pg"
 import kanel from "kanel"
 import kanel_kysely from "kanel-kysely"
-import kanel_zod from "kanel-zod"
 
 interface DB {}
 
@@ -111,10 +110,6 @@ if (process.argv.length > 2) {
     outputPath: process.argv[2],
     preDeleteOutputFolder: true,
     tsModuleFormat: "esm",
-    preRenderHooks: [
-      kanel_kysely.makeKyselyHook(),
-      kanel.generateIndexFile,
-      kanel_zod.generateZodSchemas,
-    ],
+    preRenderHooks: [kanel_kysely.makeKyselyHook(), kanel.generateIndexFile],
   })
 }
