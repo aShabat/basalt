@@ -47,7 +47,7 @@ await db.schema
   )
   .addColumn("title", "text", (col) => col.notNull())
   .addColumn("path", "text", (col) => col.notNull())
-  .addColumn("date_created", "timestamp", (col) =>
+  .addColumn("date_added", "timestamp", (col) =>
     col.notNull().defaultTo(sql`current_timestamp`),
   )
   .addColumn("date_updated", "timestamp", (col) =>
@@ -74,7 +74,7 @@ await db.schema
   .addColumn("title", "text", (col) => col.notNull())
   .addColumn("path", "text", (col) => col.notNull())
   .addColumn("content", "text", (col) => col.notNull())
-  .addColumn("date_created", "timestamp", (col) =>
+  .addColumn("date_added", "timestamp", (col) =>
     col.notNull().defaultTo(sql`current_timestamp`),
   )
   .addColumn("date_updated", "timestamp", (col) =>

@@ -46,13 +46,23 @@ export default function ({ setCurrentNote }: Props) {
   const isEditable = currentUser?.id === user?.id
 
   async function handleNewFolder(title: string) {
-    const newRootFolder = await createFolder(currentUser!.id, undefined, title)
+    const newRootFolder = await createFolder(
+      currentUser!.id,
+      undefined,
+      title,
+      `/${currentUser!.name}/${title}`,
+    )
     if (newRootFolder) setRootFolder(newRootFolder)
     setNewFolderFlag(false)
   }
 
   async function handleNewNote(title: string) {
-    const newRootFolder = await createNote(currentUser!.id, undefined, title)
+    const newRootFolder = await createNote(
+      currentUser!.id,
+      undefined,
+      title,
+      `/${currentUser!.name}/${title}`,
+    )
     if (newRootFolder) setRootFolder(newRootFolder)
     setNewNoteFlag(false)
   }
@@ -200,13 +210,23 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
   ))
 
   async function handleNewFolder(title: string) {
-    const newRootFolder = await createFolder(currentUser!.id, folder.id, title)
+    const newRootFolder = await createFolder(
+      currentUser!.id,
+      folder.id,
+      title,
+      `${path}/${title}`,
+    )
     if (newRootFolder) setRootFolder(newRootFolder)
     setNewFolderFlag(false)
   }
 
   async function handleNewNote(title: string) {
-    const newRootFolder = await createNote(currentUser!.id, folder.id, title)
+    const newRootFolder = await createNote(
+      currentUser!.id,
+      folder.id,
+      title,
+      `${path}/${title}`,
+    )
     if (newRootFolder) setRootFolder(newRootFolder)
     setNewNoteFlag(false)
   }

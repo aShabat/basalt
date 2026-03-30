@@ -3,7 +3,7 @@ import z from "zod"
 export const User = z.object({
   id: z.number(),
   name: z.string(),
-  date_added: z.date(),
+  date_added: z.coerce.date(),
 })
 
 export type User = z.infer<typeof User>
@@ -14,8 +14,8 @@ export const Note = z.object({
   folder_id: z.number().optional(),
   title: z.string(),
   content: z.string(),
-  date_added: z.date(),
-  date_updated: z.date(),
+  date_added: z.coerce.date(),
+  date_updated: z.coerce.date(),
   path: z.string(),
 })
 
@@ -26,9 +26,9 @@ const GeneralFolder = z.object({
   user_id: z.number(),
   parent_id: z.number().optional(),
   title: z.string().optional(),
-  date_added: z.date(),
-  date_updated: z.date(),
-  path: z.string(),
+  date_added: z.coerce.date().optional(),
+  date_updated: z.coerce.date().optional(),
+  path: z.string().optional(),
   get children() {
     return z.array(Folder)
   },
@@ -38,6 +38,9 @@ const GeneralFolder = z.object({
 export const Folder = GeneralFolder.safeExtend({
   id: z.number(),
   title: z.string(),
+  path: z.string(),
+  date_added: z.coerce.date(),
+  date_updated: z.coerce.date(),
 })
 
 export type Folder = z.infer<typeof Folder>
@@ -46,6 +49,8 @@ export const RootFolder = GeneralFolder.safeExtend({
   id: z.undefined(),
   parent_id: z.undefined(),
   title: z.undefined(),
+  date_added: z.undefined(),
+  date_updated: z.undefined(),
 })
 
 export type RootFolder = z.infer<typeof RootFolder>

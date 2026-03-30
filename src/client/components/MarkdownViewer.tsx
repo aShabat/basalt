@@ -21,6 +21,7 @@ export default function ({ serverNote, setServerNote }: Props) {
       serverNote.id,
       undefined,
       undefined,
+      undefined,
       clientNote,
     )
 
