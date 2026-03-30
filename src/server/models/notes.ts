@@ -78,8 +78,8 @@ export async function alterNote(
   id: number,
   folder_id: number | undefined,
   title: string | undefined,
-  content: string | undefined,
   path: string | undefined,
+  content: string | undefined,
 ) {
   try {
     let query = db

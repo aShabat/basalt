@@ -25,7 +25,7 @@ router.get("/:note_id", async (req, res) => {
 
 router.put("/", async (req, res) => {
   console.log(req.body)
-  const { folder_id, title, content } = CreateNote.parse(req.body)
+  const { folder_id, title, content, path } = CreateNote.parse(req.body)
   const user_id = req.path_user_id!
   if (!req.user || req.user.id !== user_id) {
     res
@@ -33,9 +33,10 @@ router.put("/", async (req, res) => {
       .send("can't create notes for this user_id")
     return
   }
-  const result = await createNote(user_id, folder_id, title, content)
+  const result = await createNote(user_id, folder_id, title, path, content)
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the note")
+    return
   }
   res.json(Note.parse({ ...result, folder_id: result?.folder_id || undefined }))
 })
@@ -55,7 +56,7 @@ router.post("/:note_id", async (req, res) => {
     return
   }
 
-  const { folder_id, title, content } = UpdateNote.parse(req.body)
+  const { folder_id, title, content, path } = UpdateNote.parse(req.body)
 
   const note = await getNote(note_id)
   if (!note) {
@@ -65,12 +66,12 @@ router.post("/:note_id", async (req, res) => {
     return
   }
 
-  const result = await alterNote(note_id, folder_id, title, content)
+  const result = await alterNote(note_id, folder_id, title, path, content)
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't alter the note")
     return
   }
-  res.json(Note.parse(result))
+  res.json(Note.parse({ ...result, folder_id: result.folder_id || undefined }))
 })
 
 router.delete("/:note_id", async (req, res) => {

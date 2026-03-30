@@ -7,7 +7,7 @@ import { alterFolder, createFolder, deleteFolder } from "../models/folders.ts"
 const router = Router()
 
 router.put("/", async (req, res) => {
-  const { parent_id, title } = CreateFolder.parse(req.body)
+  const { parent_id, title, path } = CreateFolder.parse(req.body)
   const user_id = req.path_user_id!
   if (!req.user || req.user.id !== user_id) {
     res
@@ -15,7 +15,7 @@ router.put("/", async (req, res) => {
       .send("can't create folders for this user_id")
     return
   }
-  const result = await createFolder(user_id, parent_id, title)
+  const result = await createFolder(user_id, parent_id, title, path)
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the folder")
   }
@@ -37,7 +37,7 @@ router.post("/:folder_id", async (req, res) => {
     return
   }
 
-  const { parent_id, title } = UpdateFolder.parse(req.body)
+  const { parent_id, title, path } = UpdateFolder.parse(req.body)
 
   const note = await getNote(folder_id)
   if (!note) {
@@ -47,7 +47,7 @@ router.post("/:folder_id", async (req, res) => {
     return
   }
 
-  const result = await alterFolder(folder_id, parent_id, title)
+  const result = await alterFolder(folder_id, parent_id, title, path)
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't alter the note")
     return
