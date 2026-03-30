@@ -30,7 +30,7 @@ await db.schema
   .addColumn("name", "text", (col) => col.notNull().unique())
   .addColumn("encrypted_password", "text", (col) => col.notNull())
   .addColumn("date_added", "timestamp", (col) =>
-    col.defaultTo(sql`current_timestamp`),
+    col.notNull().defaultTo(sql`current_timestamp`),
   )
   .execute()
 
