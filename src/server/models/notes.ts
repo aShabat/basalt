@@ -94,8 +94,6 @@ export async function alterNote(
       .where("id", "=", id as NotesId)
       .returningAll()
 
-    console.log(query.compile().parameters)
-
     const result = await query.execute()
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)

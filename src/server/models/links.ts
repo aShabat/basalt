@@ -1,6 +1,5 @@
-import { sql } from "kysely"
 import { db } from "./db.ts"
-import { UsersId } from "./generated/index.ts"
+import { NotesId, UsersId } from "./generated/index.ts"
 
 export async function getUserLinks(user_id: number) {
   try {
@@ -20,7 +19,8 @@ export async function deleteLinks(from_url: string) {
 }
 
 export async function createLinks(
-  user_id: UsersId,
+  user_id: number,
+  from_id: number,
   from_url: string,
   to_urls: string[],
 ) {
@@ -31,6 +31,7 @@ export async function createLinks(
       .values(
         to_urls.map((to_url) => ({
           user_id: user_id as UsersId,
+          from_id: from_id as NotesId,
           from_url: from_url,
           to_url: to_url,
         })),

@@ -225,7 +225,7 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
       currentUser!.id,
       folder.id,
       title,
-      `${path}/${title}`,
+      `/${path.join("/")}/${title}`,
     )
     if (newRootFolder) setRootFolder(newRootFolder)
     setNewNoteFlag(false)

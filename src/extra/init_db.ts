@@ -95,6 +95,9 @@ await db.schema
   .addColumn("user_id", "integer", (col) =>
     col.notNull().references("users.id").onDelete("cascade"),
   )
+  .addColumn("from_id", "integer", (col) =>
+    col.notNull().references("notes.id").onDelete("cascade"),
+  )
   .addColumn("from_url", "text", (col) => col.notNull())
   .addColumn("to_url", "text", (col) => col.notNull())
   .execute()

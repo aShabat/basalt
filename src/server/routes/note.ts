@@ -3,6 +3,7 @@ import { Router } from "express"
 import { alterNote, createNote, deleteNote, getNote } from "../models/notes.ts"
 import { Note } from "../../schemas/types.ts"
 import { CreateNote, UpdateNote } from "../../schemas/api.ts"
+import { createLinks } from "../models/links.ts"
 
 const router = Router()
 
@@ -24,7 +25,6 @@ router.get("/:note_id", async (req, res) => {
 })
 
 router.put("/", async (req, res) => {
-  console.log(req.body)
   const { folder_id, title, content, path } = CreateNote.parse(req.body)
   const user_id = req.path_user_id!
   if (!req.user || req.user.id !== user_id) {
@@ -38,6 +38,7 @@ router.put("/", async (req, res) => {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the note")
     return
   }
+  updateNoteLinks(user_id, result.path, result.content)
   res.json(Note.parse({ ...result, folder_id: result?.folder_id || undefined }))
 })
 
@@ -71,6 +72,7 @@ router.post("/:note_id", async (req, res) => {
     res.status(HttpStatusCode.BadRequest).send("couldn't alter the note")
     return
   }
+  await updateNoteLinks(user_id, result.id, result.path, result.content)
   res.json(Note.parse({ ...result, folder_id: result.folder_id || undefined }))
 })
 
@@ -93,5 +95,16 @@ router.delete("/:note_id", async (req, res) => {
   if (result) res.sendStatus(HttpStatusCode.Ok)
   else res.sendStatus(HttpStatusCode.BadRequest)
 })
+
+async function updateNoteLinks(
+  user_id: number,
+  note_id: number,
+  path: string,
+  content: string,
+) {
+  const linkRexp = /\(([^()]+)\)/g
+  const links = [...content.matchAll(linkRexp)].map((match) => match[1])
+  await createLinks(user_id, note_id, path, links)
+}
 
 export default router
