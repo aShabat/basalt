@@ -64,8 +64,9 @@ export async function createFolder(
   user_id: number,
   parent_id: undefined | number,
   title: string,
+  path: string,
 ) {
-  const requestBody = CreateFolder.parse({ parent_id, title })
+  const requestBody = CreateFolder.parse({ parent_id, title, path })
   const response = await axiosI.put(`/folder/${user_id}`, requestBody)
 
   if (response.status !== HttpStatusCode.Ok) {
@@ -94,8 +95,9 @@ export async function createNote(
   user_id: number,
   folder_id: number | undefined,
   title: string,
+  path: string,
 ) {
-  const requestBody = CreateNote.parse({ folder_id, title, content: "" })
+  const requestBody = CreateNote.parse({ folder_id, title, path, content: "" })
   const response = await axiosI.put(`/note/${user_id}`, requestBody)
   if (response.status !== HttpStatusCode.Ok) {
     return
@@ -108,9 +110,10 @@ export async function updateNote(
   id: number,
   folder_id: number | undefined,
   title: string | undefined,
+  path: string | undefined,
   content: string | undefined,
 ) {
-  const requestBody = UpdateNote.parse({ title, folder_id, content })
+  const requestBody = UpdateNote.parse({ title, folder_id, content, path })
   const response = await axiosI.post(`/note/${user_id}/${id}`, requestBody)
   if (response.status !== HttpStatusCode.Ok) return
   try {
