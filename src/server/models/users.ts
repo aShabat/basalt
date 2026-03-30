@@ -70,7 +70,7 @@ export async function alterUser(id: number, encrypted_password: string) {
   try {
     let result = await db
       .updateTable("users")
-      .set("encrypted_password", encrypted_password)
+      .set({ encrypted_password: encrypted_password })
       .where("id", "=", id as UsersId)
       .returningAll()
       .execute()
