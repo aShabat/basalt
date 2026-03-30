@@ -16,7 +16,6 @@ export const CreateNote = Note.omit({
   user_id: true,
   date_added: true,
   date_updated: true,
-  path: true,
 })
 export const UpdateNote = CreateNote.partial()
 
@@ -27,6 +26,5 @@ export const CreateFolder = Folder.omit({
   notes: true,
   date_added: true,
   date_updated: true,
-  path: true,
 })
 export const UpdateFolder = CreateFolder.partial()
