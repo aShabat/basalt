@@ -1,3 +1,4 @@
+import { sql } from "kysely"
 import { db } from "./db.ts"
 import { FoldersId, NotesId, UsersId } from "./generated/index.ts"
 
@@ -35,6 +36,7 @@ export async function createNote(
   user_id: number,
   folder_id: number | undefined,
   title: string,
+  path: string,
   content: string,
 ) {
   try {
@@ -43,8 +45,9 @@ export async function createNote(
       .values({
         user_id: user_id as UsersId,
         folder_id: (folder_id || null) as FoldersId,
-        title: title,
-        content: content,
+        title,
+        content,
+        path,
       })
       .returningAll()
       .execute()
@@ -76,6 +79,7 @@ export async function alterNote(
   folder_id: number | undefined,
   title: string | undefined,
   content: string | undefined,
+  path: string | undefined,
 ) {
   try {
     let query = db
@@ -84,6 +88,8 @@ export async function alterNote(
         folder_id: folder_id ? (folder_id as FoldersId) : undefined,
         title,
         content,
+        path,
+        date_updated: sql`default`,
       })
       .where("id", "=", id as NotesId)
       .returningAll()

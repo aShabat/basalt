@@ -1,5 +1,6 @@
+import { sql } from "kysely"
 import { db } from "./db.ts"
-import { FoldersId, NotesId, UsersId } from "./generated/index.ts"
+import { FoldersId, UsersId } from "./generated/index.ts"
 
 export async function getUserFolders(user_id: number) {
   try {
@@ -35,6 +36,7 @@ export async function createFolder(
   user_id: number,
   parent_id: number | undefined,
   title: string,
+  path: string,
 ) {
   try {
     const result = await db
@@ -42,7 +44,8 @@ export async function createFolder(
       .values({
         user_id: user_id as UsersId,
         parent_id: (parent_id || null) as FoldersId,
-        title: title,
+        title,
+        path,
       })
       .returningAll()
       .execute()
@@ -73,14 +76,19 @@ export async function alterFolder(
   id: number,
   parent_id: number | undefined,
   title: string | undefined,
+  path: string | undefined,
 ) {
   try {
     let query = db
       .updateTable("folders")
+      .set({
+        parent_id: parent_id as FoldersId,
+        title,
+        path,
+        date_updated: sql`default`,
+      })
       .where("id", "=", id as FoldersId)
       .returningAll()
-    query = parent_id ? query.set("parent_id", parent_id as FoldersId) : query
-    query = title ? query.set("title", title) : query
 
     const result = await query.execute()
     if (result.length !== 1)
