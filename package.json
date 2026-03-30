@@ -15,6 +15,7 @@
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
+    "dompurify": "^3.3.3",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
@@ -44,6 +45,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "kanel": "^3.16.1",
     "kanel-kysely": "^0.8.0",
+    "kanel-zod": "^1.7.0",
     "nodemon": "^3.1.10",
     "vite": "^6.3.3"
   }

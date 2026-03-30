@@ -1,8 +1,9 @@
 import config from "../config.ts"
-import { Kysely, PostgresDialect } from "kysely"
+import { Kysely, PostgresDialect, sql } from "kysely"
 import { Pool } from "pg"
 import kanel from "kanel"
 import kanel_kysely from "kanel-kysely"
+import kanel_zod from "kanel-zod"
 
 interface DB {}
 
@@ -29,6 +30,9 @@ await db.schema
   )
   .addColumn("name", "text", (col) => col.notNull().unique())
   .addColumn("encrypted_password", "text", (col) => col.notNull())
+  .addColumn("date_added", "timestamp", (col) =>
+    col.defaultTo(sql`current_timestamp`),
+  )
   .execute()
 
 await db.schema
@@ -43,6 +47,13 @@ await db.schema
     col.references("folders.id").onDelete("cascade"),
   )
   .addColumn("title", "text", (col) => col.notNull())
+  .addColumn("path", "text", (col) => col.notNull())
+  .addColumn("date_created", "timestamp", (col) =>
+    col.notNull().defaultTo(sql`current_timestamp`),
+  )
+  .addColumn("date_updated", "timestamp", (col) =>
+    col.notNull().defaultTo(sql`current_timestamp`),
+  )
   .addUniqueConstraint(
     "unique_user_parent_title",
     ["user_id", "parent_id", "title"],
@@ -62,7 +73,14 @@ await db.schema
     col.references("folders.id").onDelete("cascade"),
   )
   .addColumn("title", "text", (col) => col.notNull())
+  .addColumn("path", "text", (col) => col.notNull())
   .addColumn("content", "text", (col) => col.notNull())
+  .addColumn("date_created", "timestamp", (col) =>
+    col.notNull().defaultTo(sql`current_timestamp`),
+  )
+  .addColumn("date_updated", "timestamp", (col) =>
+    col.notNull().defaultTo(sql`current_timestamp`),
+  )
   .addUniqueConstraint(
     "unique_user_folder_title",
     ["user_id", "folder_id", "title"],
@@ -93,6 +111,10 @@ if (process.argv.length > 2) {
     outputPath: process.argv[2],
     preDeleteOutputFolder: true,
     tsModuleFormat: "esm",
-    preRenderHooks: [kanel_kysely.makeKyselyHook(), kanel.generateIndexFile],
+    preRenderHooks: [
+      kanel_kysely.makeKyselyHook(),
+      kanel.generateIndexFile,
+      kanel_zod.generateZodSchemas,
+    ],
   })
 }
