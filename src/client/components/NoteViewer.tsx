@@ -1,11 +1,22 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import FolderTree from "./FolderTree"
 import NavigationBar from "./NavigationBar"
-import { Note } from "../../schemas/types"
+import { Note, Graph } from "../../schemas/types"
 import MarkdownViewer from "./MarkdownViewer"
+import { useParams } from "react-router"
+import { getGraph } from "../api"
 
 export default function () {
+  const { name } = useParams()
+  const [links, setLinks] = useState<Graph>()
   const [currentNote, setCurrentNote] = useState<Note>()
+
+  useEffect(() => {
+    ;(async () => {
+      setLinks(await getGraph({ name }))
+    })()
+  }, [name])
+
   return (
     <div>
       <NavigationBar />
@@ -16,7 +27,7 @@ export default function () {
           setServerNote={setCurrentNote}
         />
       ) : (
-        "graph"
+        <>{JSON.stringify(links)}</>
       )}
     </div>
   )
