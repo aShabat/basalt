@@ -14,14 +14,14 @@ router.get("/:note_id", async (req, res) => {
     return
   }
 
-  const note = await getNote(note_id)
-  if (!note) {
+  const result = await getNote(note_id)
+  if (!result) {
     res
       .status(HttpStatusCode.BadRequest)
       .send("couldn't find the note with this id")
     return
   }
-  res.json(Note.parse(note))
+  res.json(Note.parse({ ...result, folder_id: result.folder_id || undefined }))
 })
 
 router.put("/", async (req, res) => {
@@ -38,7 +38,7 @@ router.put("/", async (req, res) => {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the note")
     return
   }
-  updateNoteLinks(user_id, result.path, result.content)
+  updateNoteLinks(user_id, result.id, result.path, result.content)
   res.json(Note.parse({ ...result, folder_id: result?.folder_id || undefined }))
 })
 
