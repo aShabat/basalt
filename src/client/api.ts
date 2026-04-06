@@ -1,5 +1,5 @@
 import axios, { HttpStatusCode } from "axios"
-import { Note, RootFolder, User } from "../schemas/types"
+import { Graph, Note, RootFolder, User } from "../schemas/types"
 import { CreateFolder, CreateNote, LogIn, UpdateNote } from "../schemas/api"
 
 const axiosI = axios.create({ baseURL: "/api" })
@@ -46,6 +46,18 @@ export async function postUserSignup(name: string, password: string) {
 
 export async function deleteLogout() {
   await axiosI.delete("/user/logout")
+}
+
+export async function getGraph(params?: userParams) {
+  const response = await axiosI.get("/user/graph", { params })
+  if (response.status !== HttpStatusCode.Ok) {
+    return
+  }
+  try {
+    return Graph.parse(response.data)
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 export async function getTree(params?: userParams) {
