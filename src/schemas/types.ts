@@ -61,3 +61,5 @@ export const Graph = z.object({
     z.object({ from: z.number(), to: z.number(), weight: z.number() }),
   ),
 })
+
+export type Graph = z.infer<typeof Graph>
