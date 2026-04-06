@@ -15,7 +15,7 @@ export default function () {
     ;(async () => {
       setLinks(await getGraph({ name }))
     })()
-  }, [name])
+  }, [name, currentNote])
 
   return (
     <div>
