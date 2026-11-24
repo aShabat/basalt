@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { getUser } from "../api"
 import { login } from "../store/auth"
 import { useAppDispatch } from "../store/store"
@@ -10,18 +10,25 @@ import NoteViewer from "./NoteViewer"
 
 export default function () {
   const dispatch = useAppDispatch()
+  const [ready, setReady] = useState(false)
+
   useEffect(() => {
     let active = true
     ;(async () => {
       try {
         const user = await getUser()
         if (active && user) dispatch(login(user))
-      } catch {}
+      } catch {
+      } finally {
+        if (active) setReady(true)
+      }
     })()
     return () => {
       active = false
     }
   }, [dispatch])
+
+  if (!ready) return <div>loading</div>
   return (
     <div>
       <Routes>

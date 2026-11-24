@@ -10,9 +10,8 @@ the active action plan; work through it in order unless the user redirects.
 - Public read, private write: profiles, trees, notes, and graphs are public,
   including other users' content. Editing requires the owner.
 - Cross-user references are allowed in links; cross-user edits are not.
-- Notes have `is_private` (added, filtering not implemented yet). Private notes
-  will be hidden from non-owners; direct access will return `404`. Folders have no
-  privacy flag.
+- Notes have `is_private`. Non-owners do not see private notes in trees or
+  graphs; direct private note reads return `404`. Folders have no privacy flag.
 - Logout clears the cookie and Redux state but keeps the current URL. A public
   note stays visible read-only; an owned private note redirects to the profile
   root.
@@ -62,7 +61,8 @@ the active action plan; work through it in order unless the user redirects.
   `src/server/models/`.
 - Client: all HTTP calls in `src/client/api.ts`, pages in
   `src/client/components/`, auth slice in `src/client/store/`. The folder tree
-  is rebuilt client-side from `GET /api/users/:user_id/tree`.
+  is rebuilt client-side from `GET /api/users/:user_id/tree`. `App.tsx` waits
+  for the auth bootstrap before rendering routes.
 - Navigation paths are built from user/folder/note titles, not DB `path`
   columns. `path` is a denormalized duplicate also used as link identity
   (markdown `(target)` links become `from_url`/`to_url`).
@@ -74,7 +74,8 @@ the active action plan; work through it in order unless the user redirects.
 - Public reads: `GET /api/users?name=`, `/api/users/:user_id`,
   `/api/users/:user_id/tree`, `/api/users/:user_id/graph`,
   `/api/notes/:note_id`, `/api/folders/:folder_id`. `GET /api/users/me`
-  requires auth.
+  requires auth. Private notes are omitted from non-owner trees/graphs and
+  return `404` from direct note reads.
 - Unmatched `/api/*` paths return `404` JSON.
 - Write routes verify the fetched row's `user_id` and filter mutations by owner
   in Kysely.

@@ -82,24 +82,28 @@ Decisions:
 - [x] Verified all existing flows, old API paths return `404`, and existing data
       is unchanged.
 
-## Phase 3 — Privacy and logout behavior
+## Phase 3 — Privacy and logout behavior (done)
 
-- [ ] Tree reads accept optional auth: owner sees private notes; everyone else
+- [x] Tree reads use optional auth: owner sees private notes; everyone else
       gets public notes only.
-- [ ] `GET /notes/:note_id`: private notes return `404` to non-owners; owner
+- [x] `GET /notes/:note_id`: private notes return `404` to non-owners; owner
       sees them.
-- [ ] Graph: owner includes links from own private notes; other viewers exclude
+- [x] Graph: owner includes links from own private notes; other viewers exclude
       them.
-- [ ] Add an owner-only private checkbox in the note editor.
-- [ ] Show a lock indicator for private notes in the owner's tree.
-- [ ] On login/logout, refetch tree and graph so privacy visibility updates.
-- [ ] Logout keeps the current URL and content when the note is public; the UI
+- [x] Added an owner-only private checkbox in the note editor.
+- [x] Show a `private` label for private notes in the owner's tree.
+- [x] Tree and graph refetch on login/logout and after note updates.
+- [x] Logout keeps the current URL and content when the note is public; the UI
       becomes read-only and the navbar switches to login/signup.
-- [ ] Logout while viewing an owned private note clears it and redirects to the
+- [x] Logout while viewing an owned private note clears it and redirects to the
       profile root.
-- [ ] Verify: Bob cannot see Alice's private note in her tree or by direct URL;
-      Alice's public note stays open after logout; Alice's private note
-      redirects after logout; Bob links to Alice's public note successfully.
+- [x] Fixed `UpdateNote` so content-only saves do not inject `is_private: false`.
+- [x] App waits for auth hydration before rendering routes, avoiding false
+      redirects on private URLs.
+- [x] Verified: private note hidden from anonymous/Bob trees and direct reads,
+      content-only update preserves privacy, graph excludes private sources,
+      privacy toggle works, cross-user writes return `403`.
+- [x] Existing data unchanged: 1 user, 2 notes, 1 folder, 4 links.
 
 ## Phase 4 — Navigation, editor, and layout
 

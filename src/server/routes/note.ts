@@ -13,6 +13,7 @@ interface NoteUpdate {
   title?: string
   content?: string
   path?: string
+  is_private?: boolean
 }
 
 router.post("/", async (req, res) => {
@@ -22,7 +23,9 @@ router.post("/", async (req, res) => {
   }
   const owner_id = req.user.id
 
-  const { folder_id, title, content, path } = CreateNote.parse(req.body)
+  const { folder_id, title, content, path, is_private } = CreateNote.parse(
+    req.body,
+  )
   if (folder_id !== undefined) {
     const folder = await getFolder(folder_id)
     if (!folder || folder.user_id !== owner_id) {
@@ -31,7 +34,14 @@ router.post("/", async (req, res) => {
     }
   }
 
-  const result = await createNote(owner_id, folder_id, title, path, content)
+  const result = await createNote(
+    owner_id,
+    folder_id,
+    title,
+    path,
+    content,
+    is_private,
+  )
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the note")
     return
@@ -51,6 +61,10 @@ router.get("/:note_id", async (req, res) => {
 
   const result = await getNote(note_id)
   if (!result) {
+    res.status(HttpStatusCode.NotFound).send("couldn't find the note")
+    return
+  }
+  if (result.is_private && req.user?.id !== result.user_id) {
     res.status(HttpStatusCode.NotFound).send("couldn't find the note")
     return
   }
@@ -135,6 +149,7 @@ async function updateExistingNote(
     body.title,
     body.path,
     body.content,
+    body.is_private,
   )
   if (!result) {
     res.status(HttpStatusCode.BadRequest).send("couldn't alter the note")

@@ -2,14 +2,17 @@ import { sql } from "kysely"
 import { db } from "./db.ts"
 import { FoldersId, NotesId, UsersId } from "./generated/index.ts"
 
-export async function getUserNotes(user_id: number) {
+export async function getUserNotes(
+  user_id: number,
+  include_private = false,
+) {
   try {
-    const result = await db
+    let query = db
       .selectFrom("notes")
       .where("user_id", "=", user_id as UsersId)
       .selectAll()
-      .execute()
-    return result
+    if (!include_private) query = query.where("is_private", "=", false)
+    return await query.execute()
   } catch (err) {
     console.log("error in getUserNotes")
     console.log(err)
@@ -39,6 +42,7 @@ export async function createNote(
   title: string,
   path: string,
   content: string,
+  is_private: boolean,
 ) {
   try {
     const result = await db
@@ -48,6 +52,7 @@ export async function createNote(
         folder_id: (folder_id || null) as FoldersId,
         title,
         content,
+        is_private,
         path,
       })
       .returningAll()
@@ -83,6 +88,7 @@ export async function alterNote(
   title: string | undefined,
   path: string | undefined,
   content: string | undefined,
+  is_private: boolean | undefined,
 ) {
   try {
     let query = db
@@ -91,6 +97,7 @@ export async function alterNote(
         folder_id: folder_id ? (folder_id as FoldersId) : undefined,
         title,
         content,
+        is_private,
         path,
         date_updated: sql`default`,
       })

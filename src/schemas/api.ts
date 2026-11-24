@@ -11,13 +11,20 @@ export const LogIn = z.object({
   password: z.string(),
 })
 
-export const CreateNote = Note.omit({
+const NoteInput = Note.omit({
   id: true,
   user_id: true,
   date_added: true,
   date_updated: true,
+  is_private: true,
 })
-export const UpdateNote = CreateNote.partial()
+
+export const CreateNote = NoteInput.safeExtend({
+  is_private: z.boolean().default(false),
+})
+export const UpdateNote = NoteInput.partial().safeExtend({
+  is_private: z.boolean().optional(),
+})
 
 export const CreateFolder = Folder.omit({
   id: true,

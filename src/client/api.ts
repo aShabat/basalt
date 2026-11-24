@@ -139,8 +139,15 @@ export async function updateNote(
   title: string | undefined,
   path: string | undefined,
   content: string | undefined,
+  is_private?: boolean,
 ) {
-  const requestBody = UpdateNote.parse({ title, folder_id, content, path })
+  const requestBody = UpdateNote.parse({
+    title,
+    folder_id,
+    content,
+    path,
+    is_private,
+  })
   return request(() => axiosI.patch(`/notes/${id}`, requestBody), Note)
 }
 

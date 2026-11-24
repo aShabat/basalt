@@ -87,7 +87,7 @@ router.get("/:user_id/tree", async (req, res) => {
   }
 
   const folders = await getUserFolders(user_id)
-  const notes = await getUserNotes(user_id)
+  const notes = await getUserNotes(user_id, req.user?.id === user_id)
   if (!folders || !notes) {
     res
       .status(HttpStatusCode.InternalServerError)
@@ -112,7 +112,7 @@ router.get("/:user_id/graph", async (req, res) => {
     return
   }
 
-  const links = await getUserLinks(user_id)
+  const links = await getUserLinks(user_id, req.user?.id === user_id)
   if (!links) {
     res
       .status(HttpStatusCode.InternalServerError)

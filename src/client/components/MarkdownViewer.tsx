@@ -2,7 +2,7 @@ import { Note } from "../../schemas/types"
 import DOMPurify from "dompurify"
 import { marked } from "marked"
 import { useAppSelector } from "../store/store"
-import { useEffect, useRef, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 import { updateNote } from "../api"
 
 interface Props {
@@ -15,6 +15,7 @@ export default function ({ serverNote, setServerNote }: Props) {
   const [clientNote, setClientNote] = useState(serverNote.content)
   const [editFlag, setEditFlag] = useState(false)
   const [error, setError] = useState("")
+  const [privacyPending, setPrivacyPending] = useState(false)
 
   async function handleSave() {
     setError("")
@@ -33,12 +34,42 @@ export default function ({ serverNote, setServerNote }: Props) {
     }
   }
 
+  async function handlePrivateChange(event: ChangeEvent<HTMLInputElement>) {
+    setError("")
+    setPrivacyPending(true)
+    try {
+      const updatedNote = await updateNote(
+        serverNote.id,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        event.target.checked,
+      )
+
+      if (updatedNote) setServerNote(updatedNote)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "couldn't change privacy")
+    } finally {
+      setPrivacyPending(false)
+    }
+  }
+
   return (
     <div>
       {error && <div> {error} </div>}
       {isEditable && (
         <>
           <button onClick={() => setEditFlag(!editFlag)}> edit </button>
+          <label>
+            <input
+              type="checkbox"
+              checked={serverNote.is_private}
+              onChange={handlePrivateChange}
+              disabled={privacyPending}
+            />
+            private
+          </label>
         </>
       )}
       {isEditable && editFlag && (

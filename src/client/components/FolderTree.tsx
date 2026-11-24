@@ -38,8 +38,9 @@ function errorMessage(err: unknown) {
 
 interface Props {
   setCurrentNote: Function
+  refreshKey: number
 }
-export default function ({ setCurrentNote }: Props) {
+export default function ({ setCurrentNote, refreshKey }: Props) {
   const { name } = useParams()
   const location = useLocation()
   const [currentUser, setCurrentUser] = useState<User>()
@@ -116,7 +117,7 @@ export default function ({ setCurrentNote }: Props) {
         }
       }
     })()
-  }, [currentUser])
+  }, [currentUser, user?.id, refreshKey])
 
   useEffect(() => {
     if (!rootFolder || !currentUser) return
@@ -381,6 +382,7 @@ export function NoteRow({ note, path: propPath }: NoteRowProps) {
   return (
     <div id={`note_${note.id}`} className="note_row" onClick={onClick}>
       {note.title}
+      {note.is_private && " private "}
       {isEditable && (
         <button
           onClick={(e) => {

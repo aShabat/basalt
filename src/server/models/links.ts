@@ -1,13 +1,18 @@
 import { db } from "./db.ts"
 import { NotesId, UsersId } from "./generated/index.ts"
 
-export async function getUserLinks(user_id: number) {
+export async function getUserLinks(
+  user_id: number,
+  include_private = false,
+) {
   try {
-    return await db
+    let query = db
       .selectFrom("links")
-      .where("user_id", "=", user_id as UsersId)
-      .selectAll()
-      .execute()
+      .innerJoin("notes", "notes.id", "links.from_id")
+      .where("links.user_id", "=", user_id as UsersId)
+      .selectAll("links")
+    if (!include_private) query = query.where("notes.is_private", "=", false)
+    return await query.execute()
   } catch (err) {
     console.log("error in getUserLinks")
     console.log(err)
