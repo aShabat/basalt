@@ -1,4 +1,11 @@
-import { createContext, Fragment, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  Fragment,
+  type MouseEvent as ReactMouseEvent,
+  useContext,
+  useEffect,
+  useState,
+} from "react"
 import { Folder, Note, RootFolder, User } from "../../schemas/types"
 import { RenamePreview } from "../../schemas/api"
 import {
@@ -36,6 +43,8 @@ interface TreeContextState {
   setRootFolder: Function
   setError: Function
   onPathsChanged: Function
+  showTip: (label: string, x: number, y: number) => void
+  hideTip: () => void
 }
 
 const TreeContext = createContext<TreeContextState>({
@@ -44,7 +53,46 @@ const TreeContext = createContext<TreeContextState>({
   setRootFolder: () => {},
   setError: () => {},
   onPathsChanged: () => {},
+  showTip: () => {},
+  hideTip: () => {},
 })
+
+interface Tip {
+  label: string
+  x: number
+  y: number
+  above: boolean
+}
+
+interface TreeActionProps {
+  label: string
+  icon: string
+  onClick: (event: ReactMouseEvent<HTMLButtonElement>) => void
+}
+
+function TreeAction({ label, icon, onClick }: TreeActionProps) {
+  const { showTip, hideTip } = useContext(TreeContext)
+
+  return (
+    <button
+      className="tree_action"
+      aria-label={label}
+      onClick={(event) => {
+        hideTip()
+        onClick(event)
+      }}
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse")
+          showTip(label, event.clientX, event.clientY)
+      }}
+      onPointerLeave={hideTip}
+    >
+      <span className="icon" aria-hidden="true">
+        {icon}
+      </span>
+    </button>
+  )
+}
 
 function errorMessage(err: unknown) {
   return err instanceof Error ? err.message : "request failed"
@@ -68,8 +116,17 @@ export default function ({
   const [newFolderFlag, setNewFolderFlag] = useState(false)
   const [newNoteFlag, setNewNoteFlag] = useState(false)
   const [error, setError] = useState("")
+  const [tip, setTip] = useState<Tip>()
   const user = useAppSelector(({ auth }) => auth.user)
   const isEditable = currentUser?.id === user?.id
+
+  function showTip(label: string, x: number, y: number) {
+    setTip({ label, x, y, above: y > 50 })
+  }
+
+  function hideTip() {
+    setTip(undefined)
+  }
 
   async function handleNewFolder(title: string) {
     setError("")
@@ -175,6 +232,8 @@ export default function ({
         setRootFolder,
         setError,
         onPathsChanged,
+        showTip,
+        hideTip,
       }}
     >
       <div id="root_folder" className="tree">
@@ -183,10 +242,16 @@ export default function ({
           <>
             {isEditable && (
               <>
-                <button onClick={() => setNewFolderFlag(true)}>
-                  new folder
-                </button>
-                <button onClick={() => setNewNoteFlag(true)}>new note</button>
+                <TreeAction
+                  label="new folder"
+                  icon="📁"
+                  onClick={() => setNewFolderFlag(true)}
+                />
+                <TreeAction
+                  label="new note"
+                  icon="📝"
+                  onClick={() => setNewNoteFlag(true)}
+                />
               </>
             )}
             {isEditable && newFolderFlag && (
@@ -210,6 +275,20 @@ export default function ({
           "loading"
         ) : null}
       </div>
+      {tip && (
+        <div
+          className="tree_tip"
+          style={{
+            left: tip.x,
+            top: tip.y + (tip.above ? -8 : 18),
+            transform: tip.above
+              ? "translate(-50%, -100%)"
+              : "translateX(-50%)",
+          }}
+        >
+          {tip.label}
+        </div>
+      )}
     </TreeContext>
   )
 }
@@ -319,44 +398,44 @@ export function FolderRow({ folder }: FolderRowProps) {
       <div className="folder_label" onClick={() => setFold(!fold)}>
         <span>{folder.title}</span>
         {isEditable && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
+          <span className="row_actions">
+            <TreeAction
+              label="new folder"
+              icon="📁"
+              onClick={(event) => {
+                event.stopPropagation()
                 setFold(false)
                 setNewFolderFlag(true)
               }}
-            >
-              new folder
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
+            />
+            <TreeAction
+              label="new note"
+              icon="📝"
+              onClick={(event) => {
+                event.stopPropagation()
                 setFold(false)
                 setNewNoteFlag(true)
               }}
-            >
-              new note
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
+            />
+            <TreeAction
+              label="rename folder"
+              icon="✏️"
+              onClick={(event) => {
+                event.stopPropagation()
                 setFold(false)
                 setRenameTitle(folder.title)
                 setRenameFlag(true)
               }}
-            >
-              rename
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
+            />
+            <TreeAction
+              label="delete folder"
+              icon="🗑️"
+              onClick={(event) => {
+                event.stopPropagation()
                 handleDelete()
               }}
-            >
-              delete
-            </button>
-          </>
+            />
+          </span>
         )}
       </div>
       {isEditable && renameFlag && (
@@ -442,14 +521,14 @@ export function NoteRow({ note }: NoteRowProps) {
       {note.title}
       {note.is_private && " private "}
       {isEditable && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
+        <TreeAction
+          label="delete note"
+          icon="🗑️"
+          onClick={(event) => {
+            event.stopPropagation()
             handleDelete()
           }}
-        >
-          delete
-        </button>
+        />
       )}
     </div>
   )

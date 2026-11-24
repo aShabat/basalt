@@ -15,6 +15,53 @@ button {
   cursor: pointer;
 }
 
+.icon {
+  margin-right: 0.2rem;
+}
+
+.tree_action {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.tree_action .icon {
+  margin-right: 0;
+}
+
+.tree_tip {
+  position: fixed;
+  z-index: 30;
+  background: #222;
+  color: #fff;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.row_actions {
+  display: flex;
+  gap: 0.2rem;
+  margin-left: auto;
+}
+
+.folder_label .row_actions button {
+  margin-left: 0;
+}
+
+.github_icon {
+  width: 1em;
+  height: 1em;
+  margin-right: 0.25rem;
+  vertical-align: -0.12em;
+}
+
+.tree button {
+  white-space: nowrap;
+}
+
 a {
   cursor: pointer;
 }
