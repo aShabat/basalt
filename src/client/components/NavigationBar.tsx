@@ -35,12 +35,7 @@ export default function () {
         target="_blank"
         rel="noreferrer"
       >
-        <img
-          className="github_icon"
-          src="/github-mark.svg"
-          alt=""
-          aria-hidden="true"
-        />
+        <i className="github_icon ai-github-fill" aria-hidden="true" />
         github
       </a>
       {error && <span> {error} </span>}

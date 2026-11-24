@@ -64,12 +64,16 @@ export default function () {
                 aria-label="hide tree"
                 title="hide tree"
               >
-                ◀
+                <i className="ai-chevron-left" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => setShowGraph(!showGraph)}
               >
+                <i
+                  className={`icon ${showGraph ? "ai-paper" : "ai-network"}`}
+                  aria-hidden="true"
+                />
                 {showGraph ? "notes" : "graph"}
               </button>
             </div>
@@ -89,7 +93,7 @@ export default function () {
               aria-label="show tree"
               title="show tree"
             >
-              ▶
+              <i className="ai-chevron-right" aria-hidden="true" />
             </button>
           )}
           {showGraph && name ? (

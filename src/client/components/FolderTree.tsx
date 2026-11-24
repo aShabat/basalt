@@ -87,9 +87,7 @@ function TreeAction({ label, icon, onClick }: TreeActionProps) {
       }}
       onPointerLeave={hideTip}
     >
-      <span className="icon" aria-hidden="true">
-        {icon}
-      </span>
+      <i className={`icon ${icon}`} aria-hidden="true" />
     </button>
   )
 }
@@ -244,12 +242,12 @@ export default function ({
               <>
                 <TreeAction
                   label="new folder"
-                  icon="📁"
+                  icon="ai-folder-add"
                   onClick={() => setNewFolderFlag(true)}
                 />
                 <TreeAction
                   label="new note"
-                  icon="📝"
+                  icon="ai-file"
                   onClick={() => setNewNoteFlag(true)}
                 />
               </>
@@ -396,12 +394,13 @@ export function FolderRow({ folder }: FolderRowProps) {
   return (
     <div id={`folder_${folder.id}`} className="folder_row">
       <div className="folder_label" onClick={() => setFold(!fold)}>
+        <i className="icon ai-folder" aria-hidden="true" />
         <span>{folder.title}</span>
         {isEditable && (
           <span className="row_actions">
             <TreeAction
               label="new folder"
-              icon="📁"
+              icon="ai-folder-add"
               onClick={(event) => {
                 event.stopPropagation()
                 setFold(false)
@@ -410,7 +409,7 @@ export function FolderRow({ folder }: FolderRowProps) {
             />
             <TreeAction
               label="new note"
-              icon="📝"
+              icon="ai-file"
               onClick={(event) => {
                 event.stopPropagation()
                 setFold(false)
@@ -419,7 +418,7 @@ export function FolderRow({ folder }: FolderRowProps) {
             />
             <TreeAction
               label="rename folder"
-              icon="✏️"
+              icon="ai-pencil"
               onClick={(event) => {
                 event.stopPropagation()
                 setFold(false)
@@ -429,7 +428,7 @@ export function FolderRow({ folder }: FolderRowProps) {
             />
             <TreeAction
               label="delete folder"
-              icon="🗑️"
+              icon="ai-trash-bin"
               onClick={(event) => {
                 event.stopPropagation()
                 handleDelete()
@@ -518,12 +517,18 @@ export function NoteRow({ note }: NoteRowProps) {
       className={note.path === currentPath ? "note_row active" : "note_row"}
       onClick={onClick}
     >
+      <i className="icon ai-file" aria-hidden="true" />
       {note.title}
-      {note.is_private && " private "}
+      {note.is_private && (
+        <>
+          <i className="icon ai-eye-closed" aria-hidden="true" />
+          private
+        </>
+      )}
       {isEditable && (
         <TreeAction
           label="delete note"
-          icon="🗑️"
+          icon="ai-trash-bin"
           onClick={(event) => {
             event.stopPropagation()
             handleDelete()

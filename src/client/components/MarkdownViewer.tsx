@@ -150,6 +150,7 @@ export default function ({ serverNote, setServerNote, onDelete }: Props) {
               onClick={handleRename}
               disabled={title.trim() === serverNote.title}
             >
+              <i className="icon ai-tag" aria-hidden="true" />
               rename
             </button>
           </>
@@ -161,30 +162,40 @@ export default function ({ serverNote, setServerNote, onDelete }: Props) {
       {isEditable && (
         <div className="toolbar">
           <button type="button" onClick={() => setEditFlag(!editFlag)}>
+            <i
+              className={`icon ${editFlag ? "ai-eye-open" : "ai-pencil"}`}
+              aria-hidden="true"
+            />
             {editFlag ? "preview" : "edit"}
           </button>
-          {editFlag && (
-            <button type="button" onClick={handleSave} disabled={!dirty}>
-              save
-            </button>
-          )}
+          <button type="button" onClick={handleSave} disabled={!dirty}>
+            <i className="icon ai-save" aria-hidden="true" />
+            save
+          </button>
           {dirty && <span className="dirty">unsaved</span>}
-          <label>
+          <button type="button" onClick={handleDelete}>
+            <i className="icon ai-trash-bin" aria-hidden="true" />
+            delete
+          </button>
+          <label className="private_toggle">
             <input
               type="checkbox"
               checked={serverNote.is_private}
               onChange={handlePrivateChange}
               disabled={privacyPending}
             />
+            <i
+              className={`icon ${
+                serverNote.is_private ? "ai-eye-closed" : "ai-eye-open"
+              }`}
+              aria-hidden="true"
+            />
             private
           </label>
-          <button type="button" onClick={handleDelete}>
-            delete
-          </button>
         </div>
       )}
       {isEditable && editFlag && (
-        <>
+        <div className="editor_split">
           <textarea
             className="editor"
             value={clientNote}
@@ -193,7 +204,7 @@ export default function ({ serverNote, setServerNote, onDelete }: Props) {
           <div className="preview">
             <Markdown content={clientNote} />
           </div>
-        </>
+        </div>
       )}
       {!editFlag && <Markdown content={clientNote} />}
       {renamePreview && (

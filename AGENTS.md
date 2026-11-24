@@ -85,6 +85,11 @@ the active action plan; work through it in order unless the user redirects.
 - `GraphView` runs the physics continuously. Nodes are draggable, background
   drag pans, wheel zooms, and reset re-seeds the layout. Physics lives in
   `Graph.tsx`.
+- UI icons use the Akar icon font: `index.html` loads
+  `https://unpkg.com/akar-icons-fonts`, and components use
+  `<i className="ai-*">`. No icon package is installed locally.
+- Note title, editor, and rendered markdown use `Special Elite` from Google
+  Fonts, loaded in `index.html`.
 
 ## API quirks
 

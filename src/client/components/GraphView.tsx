@@ -266,6 +266,7 @@ export default function ({ name, onOpen }: Props) {
     <div className="graph_view" data-frame={frame}>
       <div className="graph_toolbar">
         <button type="button" onClick={resetView}>
+          <i className="icon ai-arrow-counter-clockwise" aria-hidden="true" />
           reset view
         </button>
       </div>
