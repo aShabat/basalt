@@ -330,7 +330,11 @@ export function FolderRow({ folder }: FolderRowProps) {
   async function handleNewFolder(title: string) {
     setError("")
     try {
-      const newRootFolder = await createFolder(currentUser!.id, folder.id, title)
+      const newRootFolder = await createFolder(
+        currentUser!.id,
+        folder.id,
+        title,
+      )
       if (newRootFolder) setRootFolder(newRootFolder)
       setNewFolderFlag(false)
     } catch (err) {
@@ -520,10 +524,7 @@ export function NoteRow({ note }: NoteRowProps) {
       <i className="icon ai-file" aria-hidden="true" />
       {note.title}
       {note.is_private && (
-        <>
-          <i className="icon ai-eye-closed" aria-hidden="true" />
-          private
-        </>
+        <i className="icon ai-eye-closed" aria-hidden="true" />
       )}
       {isEditable && (
         <TreeAction
