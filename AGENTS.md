@@ -81,7 +81,9 @@ the active action plan; work through it in order unless the user redirects.
   decoded URL path to a note/folder and navigates with encoded `path` values.
   Renames update paths, links, and affected markdown link targets.
 - Link extraction uses `marked` tokens. External links and images are ignored;
-  `[label](/path)` is the supported internal link form.
+  supported internal forms are `[label](/path)` and bare `(/path)`. Link
+  destinations with spaces are percent-encoded before parsing, so raw space
+  links work.
 - `GraphView` runs the physics continuously. Nodes are draggable, background
   drag pans, wheel zooms, and reset re-seeds the layout. Physics lives in
   `Graph.tsx`.

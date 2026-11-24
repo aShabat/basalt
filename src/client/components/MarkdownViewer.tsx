@@ -11,6 +11,7 @@ import {
 } from "../api"
 import { useNavigate } from "react-router"
 import { encodePath } from "../paths"
+import { prepareLinks } from "../../markdown"
 import RenameLinksModal from "./RenameLinksModal"
 
 interface Props {
@@ -236,7 +237,7 @@ export function Markdown({ content }: MarkdownProps) {
     <div
       className="markdown"
       dangerouslySetInnerHTML={{
-        __html: DOMPurify.sanitize(marked.parse(content) as string),
+        __html: DOMPurify.sanitize(marked.parse(prepareLinks(content)) as string),
       }}
     />
   )

@@ -3,7 +3,8 @@ import { db } from "./models/db.ts"
 import { FoldersId, NotesId, UsersId } from "./models/generated/index.ts"
 import { getFolder } from "./models/folders.ts"
 import { getNote } from "./models/notes.ts"
-import { extractLinks, rewriteLinks } from "./links.ts"
+import { extractLinks } from "./links.ts"
+import { rewriteLinks } from "../markdown.ts"
 import { childPath, isUnderPath, replacePathPrefix, userPath } from "./paths.ts"
 
 export interface AffectedNote {
@@ -79,7 +80,9 @@ export async function planFolderRename(
   if (!folder) return "not found"
   if (folder.user_id !== owner.id) return "forbidden"
 
-  const parent = folder.parent_id ? await getFolder(folder.parent_id) : undefined
+  const parent = folder.parent_id
+    ? await getFolder(folder.parent_id)
+    : undefined
   const base = parent ? parent.path : userPath(owner.name)
   const new_path = childPath(base, title)
 
@@ -97,12 +100,18 @@ export async function planFolderRename(
   const mapping = new Map<string, string>()
   for (const item of folders) {
     if (isUnderPath(item.path, folder.path)) {
-      mapping.set(item.path, replacePathPrefix(item.path, folder.path, new_path))
+      mapping.set(
+        item.path,
+        replacePathPrefix(item.path, folder.path, new_path),
+      )
     }
   }
   for (const item of notes) {
     if (isUnderPath(item.path, folder.path)) {
-      mapping.set(item.path, replacePathPrefix(item.path, folder.path, new_path))
+      mapping.set(
+        item.path,
+        replacePathPrefix(item.path, folder.path, new_path),
+      )
     }
   }
 

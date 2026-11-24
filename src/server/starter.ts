@@ -25,6 +25,10 @@ Write internal links with a note path:
 
 \`[Another note](/${user_name}/Another note)\`
 
+Or use a bare path:
+
+\`(/${user_name}/Another note)\`
+
 Use the graph to see how your notes connect.
 
 ## Privacy

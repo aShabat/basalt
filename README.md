@@ -7,7 +7,7 @@ links, private notes, and an interactive link graph.
 
 - Folder tree with nested notes
 - Markdown editing with preview
-- Internal links between notes using `[label](/path)`
+- Internal links between notes using `[label](/path)` or bare `(/path)`
 - Rename notes and folders with link preview and confirmation
 - Private notes visible only to their owner
 - Interactive graph with draggable nodes, pan, and zoom
