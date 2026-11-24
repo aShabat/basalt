@@ -7,6 +7,7 @@ import noteRouter from "./routes/note.ts"
 import folderRouter from "./routes/folder.ts"
 import { authMiddleware } from "./auth.ts"
 import { HttpStatusCode } from "axios"
+import { ZodError } from "zod"
 
 const app = express()
 
@@ -40,6 +41,25 @@ function insertUserId(req: Request, res: Response, next: NextFunction) {
 
 app.use("/api/note/:user_id", [insertUserId, noteRouter])
 app.use("/api/folder/:user_id", [insertUserId, folderRouter])
+
+app.use((err: unknown, _: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) {
+    next(err)
+    return
+  }
+
+  if (err instanceof ZodError) {
+    res.status(HttpStatusCode.BadRequest).json({
+      error: err.issues[0]?.message || "invalid request",
+    })
+    return
+  }
+
+  console.log(err)
+  res
+    .status(HttpStatusCode.InternalServerError)
+    .json({ error: "internal server error" })
+})
 
 ViteExpress.listen(app, 3000, () =>
   console.log("Server is listening on port 3000..."),

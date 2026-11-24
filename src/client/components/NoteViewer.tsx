@@ -10,16 +10,23 @@ export default function () {
   const { name } = useParams()
   const [links, setLinks] = useState<Graph>()
   const [currentNote, setCurrentNote] = useState<Note>()
+  const [error, setError] = useState("")
 
   useEffect(() => {
     ;(async () => {
-      setLinks(await getGraph({ name }))
+      try {
+        setLinks(await getGraph({ name }))
+        setError("")
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "couldn't load graph")
+      }
     })()
   }, [name, currentNote])
 
   return (
     <div>
       <NavigationBar />
+      {error && <div> {error} </div>}
       <FolderTree setCurrentNote={setCurrentNote} />
       {currentNote ? (
         <MarkdownViewer

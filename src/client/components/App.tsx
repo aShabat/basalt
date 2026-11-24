@@ -11,10 +11,17 @@ import NoteViewer from "./NoteViewer"
 export default function () {
   const dispatch = useAppDispatch()
   useEffect(() => {
-    getUser().then((user) => {
-      if (user) dispatch(login(user))
-    })
-  })
+    let active = true
+    ;(async () => {
+      try {
+        const user = await getUser()
+        if (active && user) dispatch(login(user))
+      } catch {}
+    })()
+    return () => {
+      active = false
+    }
+  }, [dispatch])
   return (
     <div>
       <Routes>

@@ -14,10 +14,6 @@ export async function getUserLinks(user_id: number) {
   }
 }
 
-export async function deleteLinks(from_url: string) {
-  await db.deleteFrom("links").where("from_url", "=", from_url).execute()
-}
-
 export async function createLinks(
   user_id: number,
   from_id: number,
@@ -25,19 +21,28 @@ export async function createLinks(
   to_urls: string[],
 ) {
   try {
-    await deleteLinks(from_url)
-    return await db
-      .insertInto("links")
-      .values(
-        to_urls.map((to_url) => ({
-          user_id: user_id as UsersId,
-          from_id: from_id as NotesId,
-          from_url: from_url,
-          to_url: to_url,
-        })),
-      )
-      .returningAll()
-      .execute()
+    return await db.transaction().execute(async (trx) => {
+      await trx
+        .deleteFrom("links")
+        .where("user_id", "=", user_id as UsersId)
+        .where("from_url", "=", from_url)
+        .execute()
+
+      if (!to_urls.length) return []
+
+      return await trx
+        .insertInto("links")
+        .values(
+          to_urls.map((to_url) => ({
+            user_id: user_id as UsersId,
+            from_id: from_id as NotesId,
+            from_url: from_url,
+            to_url: to_url,
+          })),
+        )
+        .returningAll()
+        .execute()
+    })
   } catch (err) {
     console.log("error in createLinks")
     console.log(err)

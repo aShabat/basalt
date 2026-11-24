@@ -14,28 +14,35 @@ export default function ({ serverNote, setServerNote }: Props) {
   const isEditable = user?.id === serverNote.user_id
   const [clientNote, setClientNote] = useState(serverNote.content)
   const [editFlag, setEditFlag] = useState(false)
+  const [error, setError] = useState("")
 
   async function handleSave() {
-    const updatedNote = await updateNote(
-      user!.id,
-      serverNote.id,
-      undefined,
-      undefined,
-      undefined,
-      clientNote,
-    )
+    setError("")
+    try {
+      const updatedNote = await updateNote(
+        user!.id,
+        serverNote.id,
+        undefined,
+        undefined,
+        undefined,
+        clientNote,
+      )
 
-    if (updatedNote) setServerNote(updatedNote)
+      if (updatedNote) setServerNote(updatedNote)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "couldn't save note")
+    }
   }
 
   return (
     <div>
+      {error && <div> {error} </div>}
       {isEditable && (
         <>
           <button onClick={() => setEditFlag(!editFlag)}> edit </button>
         </>
       )}
-      {editFlag && (
+      {isEditable && editFlag && (
         <>
           <button onClick={handleSave}> save </button>
           <Editor

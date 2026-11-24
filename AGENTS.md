@@ -26,8 +26,9 @@ the active action plan; work through it in order unless the user redirects.
 - `npm start` — production: `tsx` server serving `dist`.
 - `npm run init:db` — destructive: drops and recreates all tables, then
   regenerates Kysely types in `src/server/models/generated`.
-- `npx tsc -p src/client --noEmit` — the working full-source typecheck.
-  Do not use `npx tsc --noEmit`: the root tsconfig lacks JSX/client settings
+- `npm run check` — typecheck plus production client build. `npm run typecheck`
+  runs the typecheck alone.
+- Do not use `npx tsc --noEmit`: the root tsconfig lacks JSX/client settings
   and reports ~130 bogus errors.
 - Use npm with the committed `package-lock.json`; there is no devenv/Nix setup.
 - No test, lint, format, or CI setup exists.
@@ -70,19 +71,16 @@ the active action plan; work through it in order unless the user redirects.
 - Reads are public: `GET /api/user`, `/api/user/tree`, `/api/user/graph`
   accept `?name=` or `?id=` and fall back to the cookie user. `route_plan` is
   the target REST shape; these are the current pre-migration endpoints.
-- Write routes only compare `req.user.id` with `:user_id`; model get/alter/
-  delete queries do not filter by owner. Any logged-in user can edit another
-  user's rows by passing their own `:user_id`. Add user filters when touching
-  those queries.
-- Errors are mostly `console.log` in models plus `undefined` returns; there is
-  no global Express error middleware. Zod parse failures use default Express
-  error responses.
+- Write routes verify both the URL `:user_id` and the fetched row's `user_id`;
+  keep new writes scoped by owner.
+- Errors: Zod failures return `400` JSON and unexpected errors return `500`
+  JSON from `main.ts`. Models still log and may return `undefined`.
+- Client API helpers throw `ApiError` with the server message; callers handle it
+  instead of relying on `undefined`.
 - Server ESM imports mix explicit `.ts` and `.js`; client/shared imports are
   extensionless. Both resolve via tsx/Vite; match the file being edited rather
   than normalizing extensions repo-wide.
 - SQL `null` `folder_id` is converted to `undefined` at route boundaries;
   keep client and server schemas aligned with that.
-- `App.tsx` auth bootstrap effect has no dependency array, so it refetches on
-  every render. Start there when fixing auth or render loops.
-- Logout currently navigates to `/` and leaves the Redux user set. Target
-  behavior is no navigation, clear auth, and stay on a public note.
+- Logout dispatches `logout()` without navigating; editing UI derives from
+  `isEditable`, so logged-out visitors stay on public notes read-only.

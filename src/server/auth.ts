@@ -12,7 +12,9 @@ declare global {
 }
 
 export function sign(user: User) {
-  return jwt.sign(user, config.jwt_key, { expiresIn: 3 * 24 * 60 * 60 })
+  return jwt.sign(User.parse(user), config.jwt_key, {
+    expiresIn: 3 * 24 * 60 * 60,
+  })
 }
 
 export function verify(token: string) {

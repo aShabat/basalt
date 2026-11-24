@@ -1,4 +1,4 @@
-import { FormEvent, useEffect } from "react"
+import { FormEvent, useEffect, useState } from "react"
 import NavigationBar from "./NavigationBar"
 import { postUserLogin } from "../api"
 import { useAppDispatch, useAppSelector } from "../store/store"
@@ -14,6 +14,8 @@ export default function () {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const user = useAppSelector(({ auth }) => auth.user)
+  const [error, setError] = useState("")
+  const [pending, setPending] = useState(false)
 
   useEffect(() => {
     if (user) navigate("/")
@@ -21,18 +23,23 @@ export default function () {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setError("")
+    setPending(true)
     const { name, password } = event.currentTarget.elements as FormElements
-    const user = await postUserLogin(name.value, password.value)
-    if (!user) {
-      console.log("didn't login")
-      return
+    try {
+      const user = await postUserLogin(name.value, password.value)
+      dispatch(login(user))
+      navigate("/")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "couldn't log in")
+    } finally {
+      setPending(false)
     }
-    dispatch(login(user))
-    navigate("/")
   }
   return (
     <div id="root">
       <NavigationBar />
+      {error && <div> {error} </div>}
       <form onSubmit={handleSubmit}>
         <label htmlFor="name_input"> Name: </label>
         <input name="name" id="name_input" />
@@ -40,7 +47,9 @@ export default function () {
         <label htmlFor="password_input"> Password: </label>
         <input type="password" name="password" id="password_input" />
 
-        <button id="submit">LogIn </button>
+        <button id="submit" disabled={pending}>
+          {pending ? "Logging in..." : "LogIn"}
+        </button>
       </form>
     </div>
   )

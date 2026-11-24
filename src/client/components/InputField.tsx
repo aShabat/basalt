@@ -21,8 +21,10 @@ export default function ({ name, handleInput, handleCancel }: Props) {
   return (
     <form onSubmit={onSubmit}>
       <input name={name} value={value} onChange={onChange} />
-      <button> Ok </button>
-      <button onClick={() => handleCancel()}> Cancel </button>
+      <button type="submit"> Ok </button>
+      <button type="button" onClick={() => handleCancel()}>
+        Cancel
+      </button>
     </form>
   )
 }

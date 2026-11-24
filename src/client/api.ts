@@ -1,75 +1,96 @@
-import axios, { HttpStatusCode } from "axios"
+import axios, { AxiosResponse } from "axios"
+import { ZodType } from "zod"
 import { Graph, Note, RootFolder, User } from "../schemas/types"
-import { CreateFolder, CreateNote, LogIn, UpdateNote } from "../schemas/api"
+import {
+  CreateFolder,
+  CreateNote,
+  LogIn,
+  SignUp,
+  UpdateNote,
+} from "../schemas/api"
 
 const axiosI = axios.create({ baseURL: "/api" })
+
+export class ApiError extends Error {
+  status?: number
+
+  constructor(message: string, status?: number) {
+    super(message)
+    this.status = status
+  }
+}
+
+function serverMessage(data: unknown) {
+  if (typeof data === "string") return data
+  if (
+    data &&
+    typeof data === "object" &&
+    "error" in data &&
+    typeof data.error === "string"
+  ) {
+    return data.error
+  }
+}
+
+function toApiError(err: unknown) {
+  if (err instanceof ApiError) return err
+  if (axios.isAxiosError(err)) {
+    return new ApiError(
+      serverMessage(err.response?.data) || err.message,
+      err.response?.status,
+    )
+  }
+  return new ApiError(err instanceof Error ? err.message : "request failed")
+}
+
+async function request<T>(
+  call: () => Promise<AxiosResponse>,
+  schema: ZodType<T>,
+) {
+  try {
+    const response = await call()
+    return schema.parse(response.data)
+  } catch (err) {
+    throw toApiError(err)
+  }
+}
+
+async function requestVoid(call: () => Promise<unknown>) {
+  try {
+    await call()
+  } catch (err) {
+    throw toApiError(err)
+  }
+}
 
 interface userParams {
   name?: string
   id?: number
 }
 export async function getUser(params?: userParams) {
-  const response = await axiosI.get("/user", { params })
-  if (response.status !== HttpStatusCode.Ok) return
-  try {
-    return User.parse(response.data)
-  } catch (err) {
-    console.log(err)
-  }
+  return request(() => axiosI.get("/user", { params }), User)
 }
 
 export async function postUserLogin(name: string, password: string) {
   const requestBody = LogIn.parse({ name, password })
-  const response = await axiosI.post("/user/login", requestBody)
-  if (response.status !== HttpStatusCode.Ok) {
-    return
-  }
-  try {
-    return User.parse(response.data)
-  } catch (err) {
-    console.log(err)
-  }
+  return request(() => axiosI.post("/user/login", requestBody), User)
 }
 
 export async function postUserSignup(name: string, password: string) {
-  const requestBody = LogIn.parse({ name, password })
-  const response = await axiosI.post("/user/signup", requestBody)
-  if (response.status !== HttpStatusCode.Ok) {
-    return
-  }
-  try {
-    return User.parse(response.data)
-  } catch (err) {
-    console.log(err)
-  }
+  const requestBody = SignUp.parse({ name, password })
+  return request(() => axiosI.post("/user/signup", requestBody), User)
 }
 
 export async function deleteLogout() {
-  await axiosI.delete("/user/logout")
+  await requestVoid(() => axiosI.delete("/user/logout"))
 }
 
 export async function getGraph(params?: userParams) {
-  const response = await axiosI.get("/user/graph", { params })
-  if (response.status !== HttpStatusCode.Ok) {
-    return
-  }
-  try {
-    return Graph.parse(response.data)
-  } catch (err) {
-    console.log(err)
-  }
+  return request(() => axiosI.get("/user/graph", { params }), Graph)
 }
 
 export async function getTree(params?: userParams) {
-  const response = await axiosI.get("/user/tree", { params })
-  if (response.status !== HttpStatusCode.Ok) {
-    return
-  }
-  try {
-    return RootFolder.parse(response.data)
-  } catch (err) {
-    console.log(err)
-  }
+  return request(() => axiosI.get("/user/tree", { params }), RootFolder)
 }
 
 export async function createFolder(
@@ -79,28 +100,17 @@ export async function createFolder(
   path: string,
 ) {
   const requestBody = CreateFolder.parse({ parent_id, title, path })
-  const response = await axiosI.put(`/folder/${user_id}`, requestBody)
-
-  if (response.status !== HttpStatusCode.Ok) {
-    return
-  }
+  await requestVoid(() => axiosI.put(`/folder/${user_id}`, requestBody))
   return await getTree({ id: user_id })
 }
 
 export async function deleteFolder(user_id: number, id: number) {
-  const response = await axiosI.delete(`/folder/${user_id}/${id}`)
-  if (response.status !== HttpStatusCode.Ok) return
+  await requestVoid(() => axiosI.delete(`/folder/${user_id}/${id}`))
   return await getTree({ id: user_id })
 }
 
 export async function getNote(user_id: number, id: number) {
-  const response = await axiosI.get(`/note/${user_id}/${id}`)
-  if (response.status !== HttpStatusCode.Ok) return
-  try {
-    return Note.parse(response.data)
-  } catch (err) {
-    console.log(err)
-  }
+  return request(() => axiosI.get(`/note/${user_id}/${id}`), Note)
 }
 
 export async function createNote(
@@ -110,10 +120,7 @@ export async function createNote(
   path: string,
 ) {
   const requestBody = CreateNote.parse({ folder_id, title, path, content: "" })
-  const response = await axiosI.put(`/note/${user_id}`, requestBody)
-  if (response.status !== HttpStatusCode.Ok) {
-    return
-  }
+  await requestVoid(() => axiosI.put(`/note/${user_id}`, requestBody))
   return await getTree({ id: user_id })
 }
 
@@ -126,17 +133,10 @@ export async function updateNote(
   content: string | undefined,
 ) {
   const requestBody = UpdateNote.parse({ title, folder_id, content, path })
-  const response = await axiosI.post(`/note/${user_id}/${id}`, requestBody)
-  if (response.status !== HttpStatusCode.Ok) return
-  try {
-    return Note.parse(response.data)
-  } catch (err) {
-    console.log(err)
-  }
+  return request(() => axiosI.post(`/note/${user_id}/${id}`, requestBody), Note)
 }
 
 export async function deleteNote(user_id: number, id: number) {
-  const response = await axiosI.delete(`/note/${user_id}/${id}`)
-  if (response.status !== HttpStatusCode.Ok) return
+  await requestVoid(() => axiosI.delete(`/note/${user_id}/${id}`))
   return await getTree({ id: user_id })
 }

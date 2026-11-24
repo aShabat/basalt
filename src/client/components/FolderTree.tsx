@@ -20,6 +20,7 @@ interface TreeContextState {
   setRootFolder: Function
   setReloadFlag: Function
   setCurrentNote: Function
+  setError: Function
 }
 
 const TreeContext = createContext<TreeContextState>({
@@ -28,7 +29,12 @@ const TreeContext = createContext<TreeContextState>({
   setRootFolder: () => {},
   setReloadFlag: () => {},
   setCurrentNote: () => {},
+  setError: () => {},
 })
+
+function errorMessage(err: unknown) {
+  return err instanceof Error ? err.message : "request failed"
+}
 
 interface Props {
   setCurrentNote: Function
@@ -41,47 +47,73 @@ export default function ({ setCurrentNote }: Props) {
   const [reloadFlag, setReloadFlag] = useState(false)
   const [newFolderFlag, setNewFolderFlag] = useState(false)
   const [newNoteFlag, setNewNoteFlag] = useState(false)
+  const [error, setError] = useState("")
   const navigate = useNavigate()
   const user = useAppSelector(({ auth }) => auth.user)
   const isEditable = currentUser?.id === user?.id
 
   async function handleNewFolder(title: string) {
-    const newRootFolder = await createFolder(
-      currentUser!.id,
-      undefined,
-      title,
-      `/${currentUser!.name}/${title}`,
-    )
-    if (newRootFolder) setRootFolder(newRootFolder)
-    setNewFolderFlag(false)
+    setError("")
+    try {
+      const newRootFolder = await createFolder(
+        currentUser!.id,
+        undefined,
+        title,
+        `/${currentUser!.name}/${title}`,
+      )
+      if (newRootFolder) setRootFolder(newRootFolder)
+      setNewFolderFlag(false)
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   async function handleNewNote(title: string) {
-    const newRootFolder = await createNote(
-      currentUser!.id,
-      undefined,
-      title,
-      `/${currentUser!.name}/${title}`,
-    )
-    if (newRootFolder) setRootFolder(newRootFolder)
-    setNewNoteFlag(false)
+    setError("")
+    try {
+      const newRootFolder = await createNote(
+        currentUser!.id,
+        undefined,
+        title,
+        `/${currentUser!.name}/${title}`,
+      )
+      if (newRootFolder) setRootFolder(newRootFolder)
+      setNewNoteFlag(false)
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   useEffect(() => {
     ;(async () => {
-      if (!currentUser || currentUser.name !== name)
+      if (currentUser && currentUser.name === name) return
+      setError("")
+      setCurrentUser(undefined)
+      setRootFolder(undefined)
+      setCurrentNote(undefined)
+      try {
         setCurrentUser(await getUser({ name }))
+      } catch (err) {
+        setError(errorMessage(err))
+      }
     })()
   }, [name])
 
   useEffect(() => {
     ;(async () => {
+      if (!currentUser) return
       if (
         name &&
-        (!rootFolder || rootFolder.id !== currentUser?.id || reloadFlag)
+        (!rootFolder || rootFolder.id !== currentUser.id || reloadFlag)
       ) {
-        setRootFolder(await getTree({ name }))
-        setReloadFlag(false)
+        setError("")
+        try {
+          const tree = await getTree({ name })
+          if (tree) setRootFolder(tree)
+          setReloadFlag(false)
+        } catch (err) {
+          setError(errorMessage(err))
+        }
       }
     })()
   }, [currentUser])
@@ -104,11 +136,17 @@ export default function ({ setCurrentNote }: Props) {
           navigate(`/${path.slice(0, i + 1).join("/")}`)
         else {
           ;(async () => {
-            const currentNote = await getNote(
-              currentUser.id,
-              folder.notes[nextNote].id,
-            )
-            setCurrentNote(currentNote)
+            setError("")
+            try {
+              const currentNote = await getNote(
+                currentUser.id,
+                folder.notes[nextNote].id,
+              )
+              setCurrentNote(currentNote)
+            } catch (err) {
+              setError(errorMessage(err))
+              setCurrentNote(undefined)
+            }
           })()
         }
         break
@@ -143,14 +181,22 @@ export default function ({ setCurrentNote }: Props) {
         isEditable,
         setReloadFlag,
         setCurrentNote,
+        setError,
       }}
     >
       <div id="root_folder">
+        {error && <div> {error} </div>}
         {rootFolder ? (
           <>
-            <button onClick={() => setNewFolderFlag(true)}> new folder </button>
-            <button onClick={() => setNewNoteFlag(true)}> new note </button>
-            {newFolderFlag && (
+            {isEditable && (
+              <>
+                <button onClick={() => setNewFolderFlag(true)}>
+                  new folder
+                </button>
+                <button onClick={() => setNewNoteFlag(true)}>new note</button>
+              </>
+            )}
+            {isEditable && newFolderFlag && (
               <InputField
                 name="folder_title"
                 handleInput={handleNewFolder}
@@ -158,7 +204,7 @@ export default function ({ setCurrentNote }: Props) {
               />
             )}
             {folders}
-            {newNoteFlag && (
+            {isEditable && newNoteFlag && (
               <InputField
                 name="note_title"
                 handleInput={handleNewNote}
@@ -167,9 +213,9 @@ export default function ({ setCurrentNote }: Props) {
             )}
             {notes}
           </>
-        ) : (
+        ) : !error ? (
           "loading"
-        )}
+        ) : null}
       </div>
     </TreeContext>
   )
@@ -190,7 +236,7 @@ interface FolderRowProps {
 export function FolderRow({ folder, path: propPath }: FolderRowProps) {
   const path = [...propPath, folder.title]
 
-  const { currentUser, setRootFolder, isEditable, currentPath } =
+  const { currentUser, setRootFolder, isEditable, currentPath, setError } =
     useContext(TreeContext)
   const [newFolderFlag, setNewFolderFlag] = useState(false)
   const [newNoteFlag, setNewNoteFlag] = useState(false)
@@ -210,30 +256,45 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
   ))
 
   async function handleNewFolder(title: string) {
-    const newRootFolder = await createFolder(
-      currentUser!.id,
-      folder.id,
-      title,
-      `${path}/${title}`,
-    )
-    if (newRootFolder) setRootFolder(newRootFolder)
-    setNewFolderFlag(false)
+    setError("")
+    try {
+      const newRootFolder = await createFolder(
+        currentUser!.id,
+        folder.id,
+        title,
+        `${path}/${title}`,
+      )
+      if (newRootFolder) setRootFolder(newRootFolder)
+      setNewFolderFlag(false)
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   async function handleNewNote(title: string) {
-    const newRootFolder = await createNote(
-      currentUser!.id,
-      folder.id,
-      title,
-      `/${path.join("/")}/${title}`,
-    )
-    if (newRootFolder) setRootFolder(newRootFolder)
-    setNewNoteFlag(false)
+    setError("")
+    try {
+      const newRootFolder = await createNote(
+        currentUser!.id,
+        folder.id,
+        title,
+        `/${path.join("/")}/${title}`,
+      )
+      if (newRootFolder) setRootFolder(newRootFolder)
+      setNewNoteFlag(false)
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   async function handleDelete() {
-    const newRootFolder = await deleteFolder(currentUser!.id, folder.id)
-    if (newRootFolder) setRootFolder(newRootFolder)
+    setError("")
+    try {
+      const newRootFolder = await deleteFolder(currentUser!.id, folder.id)
+      if (newRootFolder) setRootFolder(newRootFolder)
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   return (
@@ -260,13 +321,20 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
             >
               new note
             </button>
-            <button onClick={handleDelete}> delete </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDelete()
+              }}
+            >
+              delete
+            </button>
           </>
         )}
       </div>
       {fold || (
         <>
-          {newFolderFlag && (
+          {isEditable && newFolderFlag && (
             <InputField
               name="folder_title"
               handleInput={handleNewFolder}
@@ -276,7 +344,7 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
             />
           )}
           {children}
-          {newNoteFlag && (
+          {isEditable && newNoteFlag && (
             <InputField
               name="note_title"
               handleInput={handleNewNote}
@@ -296,12 +364,18 @@ interface NoteRowProps {
 }
 export function NoteRow({ note, path: propPath }: NoteRowProps) {
   const path = [...propPath, note.title]
-  const { currentUser, setRootFolder, isEditable } = useContext(TreeContext)
+  const { currentUser, setRootFolder, isEditable, setError } =
+    useContext(TreeContext)
   const navigate = useNavigate()
 
   async function handleDelete() {
-    const newRootFolder = await deleteNote(currentUser!.id, note.id)
-    if (newRootFolder) setRootFolder(newRootFolder)
+    setError("")
+    try {
+      const newRootFolder = await deleteNote(currentUser!.id, note.id)
+      if (newRootFolder) setRootFolder(newRootFolder)
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
   function onClick() {
     navigate(`/${path!.join("/")}`)
@@ -310,7 +384,16 @@ export function NoteRow({ note, path: propPath }: NoteRowProps) {
   return (
     <div id={`note_${note.id}`} className="note_row" onClick={onClick}>
       {note.title}
-      {isEditable && <button onClick={handleDelete}> delete </button>}
+      {isEditable && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            handleDelete()
+          }}
+        >
+          delete
+        </button>
+      )}
     </div>
   )
 }

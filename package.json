@@ -4,9 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "nodemon -w src/server -x tsx src/server/main.ts",
+    "dev": "nodemon -w src/server -w src/schemas -w src/config.ts -x tsx src/server/main.ts",
     "start": "NODE_ENV=production tsx src/server/main.ts",
     "build": "vite build",
+    "typecheck": "tsc -p src/client --noEmit",
+    "check": "npm run typecheck && vite build",
     "init:db": "tsx src/extra/init_db.ts src/server/models/generated"
   },
   "dependencies": {

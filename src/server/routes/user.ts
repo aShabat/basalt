@@ -78,7 +78,10 @@ router.get("/graph", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { name, password } = LogIn.parse(req.body)
   const user = await getUserByName(name)
-  if (!user) throw new Error("couldn't find user")
+  if (!user) {
+    res.status(HttpStatusCode.BadRequest).send("couldn't find user")
+    return
+  }
 
   const password_matched = await bcrypt.compare(
     password,
@@ -90,7 +93,7 @@ router.post("/login", async (req, res) => {
   }
 
   const token = sign(user)
-  res.cookie("AuthToken", token, { httpOnly: true })
+  res.cookie("AuthToken", token, { httpOnly: true, sameSite: "lax" })
   res.status(HttpStatusCode.Ok).json(User.parse(user))
 })
 
@@ -108,7 +111,7 @@ router.post("/signup", async (req, res) => {
   }
 
   const token = sign(user)
-  res.cookie("AuthToken", token, { httpOnly: true })
+  res.cookie("AuthToken", token, { httpOnly: true, sameSite: "lax" })
   res.status(200).json(User.parse(user))
 })
 

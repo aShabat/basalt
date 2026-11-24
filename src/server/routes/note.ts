@@ -38,7 +38,7 @@ router.put("/", async (req, res) => {
     res.status(HttpStatusCode.BadRequest).send("couldn't create the note")
     return
   }
-  updateNoteLinks(user_id, result.id, result.path, result.content)
+  await updateNoteLinks(user_id, result.id, result.path, result.content)
   res.json(Note.parse({ ...result, folder_id: result?.folder_id || undefined }))
 })
 
@@ -56,6 +56,7 @@ router.post("/:note_id", async (req, res) => {
       .send("can't change notes for this user_id")
     return
   }
+  const owner_id = req.user.id
 
   const { folder_id, title, content, path } = UpdateNote.parse(req.body)
 
@@ -64,6 +65,12 @@ router.post("/:note_id", async (req, res) => {
     res
       .status(HttpStatusCode.BadRequest)
       .send("couldn't find the note with this id")
+    return
+  }
+  if (note.user_id !== owner_id) {
+    res
+      .status(HttpStatusCode.Forbidden)
+      .send("can't change notes for this user")
     return
   }
 
@@ -88,6 +95,21 @@ router.delete("/:note_id", async (req, res) => {
     res
       .status(HttpStatusCode.BadRequest)
       .send("can't change notes for this user_id")
+    return
+  }
+  const owner_id = req.user.id
+
+  const note = await getNote(note_id)
+  if (!note) {
+    res
+      .status(HttpStatusCode.BadRequest)
+      .send("couldn't find the note with this id")
+    return
+  }
+  if (note.user_id !== owner_id) {
+    res
+      .status(HttpStatusCode.Forbidden)
+      .send("can't change notes for this user")
     return
   }
 

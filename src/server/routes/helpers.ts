@@ -48,15 +48,12 @@ export function genGraph(links: Links[]) {
   const edges = []
   for (let from = 0; from < points.length; from++) {
     for (let to = from + 1; to < points.length; to++) {
-      edges.push({
-        from,
-        to,
-        weight: links.filter(
-          ({ from_url, to_url }) =>
-            (from_url === points[from] && to_url === points[to]) ||
-            (from_url === points[to] && to_url === points[from]),
-        ).length,
-      })
+      const weight = links.filter(
+        ({ from_url, to_url }) =>
+          (from_url === points[from] && to_url === points[to]) ||
+          (from_url === points[to] && to_url === points[from]),
+      ).length
+      if (weight > 0) edges.push({ from, to, weight })
     }
   }
 

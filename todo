@@ -18,25 +18,34 @@ Decisions:
 - `npm run init:db` is destructive. Do not run it on the current database.
   Apply schema changes with SQL and regenerate kanel models.
 
-## Phase 0 — Stabilize current app
+## Phase 0 — Stabilize current app (done)
 
-- [ ] `src/client/components/App.tsx`: add `[]` to the auth bootstrap effect.
-      It currently refetches the current user on every render.
-- [ ] `src/client/components/NavigationBar.tsx`: after a successful logout,
-      dispatch `logout()`; do not `navigate("/")`. Show an error if logout fails.
-- [ ] `src/client/components/FolderTree.tsx`: gate root-level "new folder" and
-      "new note" buttons with `isEditable`. Stop folder-delete clicks from also
-      toggling the row.
-- [ ] `src/server/routes/folder.ts`: folder update calls `getNote(folder_id)`;
-      change it to `getFolder(folder_id)`. Return after every error response.
-- [ ] `src/server/models/links.ts`: skip the insert when `to_urls` is empty;
-      scope `deleteLinks` by `user_id` as well as `from_url`.
-- [ ] `src/server/routes/helpers.ts`: drop zero-weight graph edges.
-- [ ] `src/client/api.ts`: surface request failures instead of silently
-      returning `undefined`.
-- [ ] Verify: `npx tsc -p src/client --noEmit`, `npm run build`, then manually
-      test signup, login, refresh, logout, create/delete folder, create/edit/
-      delete note.
+- [x] `src/client/components/App.tsx`: auth bootstrap runs once per load.
+- [x] `src/client/components/Root.tsx`: declarative `<Navigate replace>`.
+- [x] `src/client/components/NavigationBar.tsx`: logout clears Redux without
+      navigating; failures are visible.
+- [x] `src/client/components/FolderTree.tsx`: create/delete controls are gated
+      by ownership; delete clicks no longer toggle rows; errors are shown;
+      failed loads do not wipe the tree.
+- [x] `src/server/routes/folder.ts`: folder update uses `getFolder`; missing
+      returns and folder wording fixed.
+- [x] `src/server/models/links.ts`: empty link lists are skipped; writes are
+      scoped by user and wrapped in a transaction.
+- [x] `src/server/routes/helpers.ts`: zero-weight graph edges are dropped.
+- [x] `src/client/api.ts`: requests throw `ApiError` with server messages; dead
+      status checks removed.
+- [x] `src/server/auth.ts`: JWT payload is parsed through `User`, so the bcrypt
+      hash is no longer signed; cookie is `sameSite: "lax"`.
+- [x] `src/server/main.ts`: Zod-aware error middleware; invalid input returns
+      `400` JSON.
+- [x] Note and folder writes verify row ownership and return `403` for other
+      users.
+- [x] Auth forms, tree, note save, and graph load surface errors.
+- [x] Added `npm run typecheck` and `npm run check`; nodemon watches schemas and
+      config.
+- [x] Verified: typecheck, build, anonymous read, empty-link note creation,
+      cross-user note/folder writes return `403`, invalid login returns `400`,
+      JWT excludes `encrypted_password`.
 
 ## Phase 1 — Private notes schema
 
