@@ -47,21 +47,22 @@ Decisions:
       cross-user note/folder writes return `403`, invalid login returns `400`,
       JWT excludes `encrypted_password`.
 
-## Phase 1 — Private notes schema
+## Phase 1 — Private notes schema (done)
 
-- [ ] Back up the database:
-      `pg_dump -h localhost -U basalt basalt > /tmp/opencode/basalt-backup.sql`
-- [ ] Apply the non-destructive migration:
+- [x] Backed up the database to
+      `/tmp/opencode/basalt-before-private.sql`.
+- [x] Applied the non-destructive migration:
       `ALTER TABLE notes ADD COLUMN is_private boolean NOT NULL DEFAULT false;`
-- [ ] Update `src/extra/init_db.ts` so the canonical schema includes
+- [x] Updated `src/extra/init_db.ts` so the canonical schema includes
       `is_private`.
-- [ ] Extract the kanel generation call from `init_db.ts` into
-      `src/extra/gen_models.ts`; add `npm run gen:models` that regenerates
-      `src/server/models/generated` from the live DB without dropping tables.
-- [ ] Run `npm run gen:models`.
-- [ ] Add `is_private: z.boolean()` to `Note` in `src/schemas/types.ts`.
-      `CreateNote`/`UpdateNote` inherit it.
-- [ ] Verify the new column, generated types, typecheck, and existing notes.
+- [x] Extracted kanel generation into `src/extra/gen_models.ts`; added
+      `npm run gen:models`, which regenerates without dropping tables.
+- [x] Regenerated `src/server/models/generated`.
+- [x] Added `is_private: z.boolean().default(false)` to `Note`; `CreateNote`
+      accepts omitted `is_private` and defaults to public.
+- [x] Verified existing notes remain public, typecheck passes, and note create
+      without `is_private` returns `is_private: false`.
+- [ ] Phase 3: enforce privacy in tree, note reads, and graph.
 
 ## Phase 2 — REST API migration
 

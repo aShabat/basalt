@@ -1,8 +1,7 @@
 import config from "../config.ts"
 import { Kysely, PostgresDialect, sql } from "kysely"
 import { Pool } from "pg"
-import kanel from "kanel"
-import kanel_kysely from "kanel-kysely"
+import { generateModels } from "./gen_models.ts"
 
 interface DB {}
 
@@ -74,6 +73,7 @@ await db.schema
   .addColumn("title", "text", (col) => col.notNull())
   .addColumn("path", "text", (col) => col.notNull())
   .addColumn("content", "text", (col) => col.notNull())
+  .addColumn("is_private", "boolean", (col) => col.notNull().defaultTo(false))
   .addColumn("date_added", "timestamp", (col) =>
     col.notNull().defaultTo(sql`current_timestamp`),
   )
@@ -103,16 +103,5 @@ await db.schema
   .execute()
 
 if (process.argv.length > 2) {
-  await kanel.processDatabase({
-    connection: {
-      host: process.env.DATABAS_URL,
-      user: process.env.DATABASE_USER,
-      database: process.env.DATABASE_DB,
-      port: +(process.env.DATABASE_PORT || 5432),
-    },
-    outputPath: process.argv[2],
-    preDeleteOutputFolder: true,
-    tsModuleFormat: "esm",
-    preRenderHooks: [kanel_kysely.makeKyselyHook(), kanel.generateIndexFile],
-  })
+  await generateModels(process.argv[2])
 }

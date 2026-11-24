@@ -9,6 +9,7 @@
     "build": "vite build",
     "typecheck": "tsc -p src/client --noEmit",
     "check": "npm run typecheck && vite build",
+    "gen:models": "tsx src/extra/gen_models.ts src/server/models/generated",
     "init:db": "tsx src/extra/init_db.ts src/server/models/generated"
   },
   "dependencies": {

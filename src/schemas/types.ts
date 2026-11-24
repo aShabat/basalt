@@ -14,6 +14,7 @@ export const Note = z.object({
   folder_id: z.number().optional(),
   title: z.string(),
   content: z.string(),
+  is_private: z.boolean().default(false),
   date_added: z.coerce.date(),
   date_updated: z.coerce.date(),
   path: z.string(),

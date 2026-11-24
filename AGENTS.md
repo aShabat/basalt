@@ -10,8 +10,9 @@ the active action plan; work through it in order unless the user redirects.
 - Public read, private write: profiles, trees, notes, and graphs are public,
   including other users' content. Editing requires the owner.
 - Cross-user references are allowed in links; cross-user edits are not.
-- Notes get `is_private` (planned, not implemented yet). Private notes are hidden
-  from non-owners; direct access returns `404`. Folders have no privacy flag.
+- Notes have `is_private` (added, filtering not implemented yet). Private notes
+  will be hidden from non-owners; direct access will return `404`. Folders have no
+  privacy flag.
 - Logout clears the cookie and Redux state but keeps the current URL. A public
   note stays visible read-only; an owned private note redirects to the profile
   root.
@@ -26,6 +27,8 @@ the active action plan; work through it in order unless the user redirects.
 - `npm start` — production: `tsx` server serving `dist`.
 - `npm run init:db` — destructive: drops and recreates all tables, then
   regenerates Kysely types in `src/server/models/generated`.
+- `npm run gen:models` — regenerates Kysely types from the live DB without
+  dropping tables.
 - `npm run check` — typecheck plus production client build. `npm run typecheck`
   runs the typecheck alone.
 - Do not use `npx tsc --noEmit`: the root tsconfig lacks JSX/client settings
@@ -40,13 +43,12 @@ the active action plan; work through it in order unless the user redirects.
   `DATABASE_PASSWORD`, defaulting to localhost, user `basalt`, db `basalt`.
 - Schema has no migrations: `src/extra/init_db.ts` is the canonical schema, but
   `npm run init:db` drops all data. For the existing DB, apply SQL directly and
-  regenerate kanel output; a non-destructive `gen:models` script is planned in
-  `todo`.
+  run `npm run gen:models`.
 - `src/server/models/generated/` is gitignored kanel output. A fresh clone
   cannot typecheck or run server code until `npm run init:db` succeeds against
   a reachable database.
-- `init_db.ts` passes raw `process.env` to kanel, including misspelled
-  `DATABAS_URL`; dotenv is loaded through the `src/config.ts` import.
+- `init_db.ts` reuses `generateModels` from `gen_models.ts`; both load dotenv
+  through `src/config.ts`.
 
 ## Architecture
 
