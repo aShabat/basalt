@@ -19,6 +19,9 @@ the active action plan; work through it in order unless the user redirects.
   root.
 - URLs are canonical note/folder paths (`/test/a/n`). `path` is mutable and
   updated on rename; the URL is updated to the new path.
+- Titles and usernames are trimmed and reject `/`, `\`, `#`, `?`, control
+  characters, and exactly `.`/`..`. Spaces and Unicode are allowed; URL segments
+  are percent-encoded.
 - Renames preview affected markdown links and require confirmation before
   editing link targets in note content. This can include other users' notes.
 - `src/server/routes/route_plan` is the current REST API. The old
@@ -72,6 +75,11 @@ the active action plan; work through it in order unless the user redirects.
 - Navigation uses DB `path` values, not titles or IDs. The tree resolves a
   decoded URL path to a note/folder and navigates with encoded `path` values.
   Renames update paths, links, and affected markdown link targets.
+- Link extraction uses `marked` tokens. External links and images are ignored;
+  `[label](/path)` is the supported internal link form.
+- `GraphView` runs the physics continuously. Nodes are draggable, background
+  drag pans, wheel zooms, and reset re-seeds the layout. Physics lives in
+  `Graph.tsx`.
 
 ## API quirks
 
@@ -84,6 +92,9 @@ the active action plan; work through it in order unless the user redirects.
   `/api/notes/:note_id`, `/api/folders/:folder_id`. `GET /api/users/me`
   requires auth. Private notes are omitted from non-owner trees/graphs and
   return `404` from direct note reads.
+- `GET /users/:user_id/graph` returns `{ nodes, edges }`. Nodes include every
+  visible note plus unresolved link targets; non-owner private targets stay
+  unresolved. Duplicate links collapse to one edge and self-links are skipped.
 - Unmatched `/api/*` paths return `404` JSON.
 - Write routes verify the fetched row's `user_id` and filter mutations by owner
   in Kysely.

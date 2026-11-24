@@ -1,13 +1,13 @@
 import z from "zod"
-import { Folder, Note, Title } from "./types.js"
+import { Folder, Note, Title, UserName } from "./types.js"
 
 export const SignUp = z.object({
-  name: z.string(),
+  name: UserName,
   password: z.string(),
 })
 
 export const LogIn = z.object({
-  name: z.string(),
+  name: UserName,
   password: z.string(),
 })
 

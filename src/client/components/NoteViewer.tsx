@@ -3,6 +3,7 @@ import FolderTree from "./FolderTree"
 import NavigationBar from "./NavigationBar"
 import { Note } from "../../schemas/types"
 import MarkdownViewer from "./MarkdownViewer"
+import GraphView from "./GraphView"
 import { useLocation, useNavigate, useParams } from "react-router"
 import { deleteNote } from "../api"
 import { useAppSelector } from "../store/store"
@@ -15,6 +16,12 @@ export default function () {
   const user = useAppSelector(({ auth }) => auth.user)
   const [currentNote, setCurrentNote] = useState<Note>()
   const [treeVersion, setTreeVersion] = useState(0)
+  const [showGraph, setShowGraph] = useState(false)
+
+  function handleSelectNote(note: Note) {
+    setShowGraph(false)
+    setCurrentNote(note)
+  }
 
   useEffect(() => {
     if (!currentNote?.is_private) return
@@ -47,14 +54,24 @@ export default function () {
       <NavigationBar />
       <div className="app_body">
         <aside className="sidebar">
+          <div className="sidebar_header">
+            <button
+              type="button"
+              onClick={() => setShowGraph(!showGraph)}
+            >
+              {showGraph ? "notes" : "graph"}
+            </button>
+          </div>
           <FolderTree
-            setCurrentNote={setCurrentNote}
+            setCurrentNote={handleSelectNote}
             refreshKey={treeVersion}
             onPathsChanged={handlePathsChanged}
           />
         </aside>
         <main className="main_pane">
-          {currentNote ? (
+          {showGraph && name ? (
+            <GraphView name={name} onOpen={() => setShowGraph(false)} />
+          ) : currentNote ? (
             <MarkdownViewer
               key={`${currentNote.id}:${currentNote.path}`}
               serverNote={currentNote}

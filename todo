@@ -120,20 +120,28 @@ Decisions:
       loading/empty/error states.
 - [x] Verified note and folder renames update cross-user note content and link
       rows; existing data remains intact.
+- [x] Added path-part validation: titles/usernames reject `/`, `\`, `#`, `?`,
+      control characters, and `.`/`..`; spaces and Unicode remain allowed.
 - [ ] Deferred: folder move and note move.
 - [ ] Deferred: path aliases for old bookmarks.
 
-## Phase 5 — Links and graph
+## Phase 5 — Links and graph (done)
 
-- [ ] Parse links with `marked` tokens for previews and saving; current shared
-      extractor still uses a markdown-link regex.
-- [ ] Keep `[label](target)` for MVP; add `[[Title]]` only if cheap.
-- [ ] Resolve targets to canonical note paths; keep unresolved links visible.
-- [ ] Graph endpoint: include every note as a point, deduplicate edges, keep
-      isolated notes.
-- [ ] Build the graph page using the existing `Graph.tsx` physics and SVG or
-      canvas rendering.
-- [ ] Clicking a node opens its note by path; label nodes by title/path.
+- [x] Parse links with `marked` tokens for saving and previews; external links
+      and images are ignored.
+- [x] Keep `[label](target)`; `[[Title]]` remains deferred.
+- [x] Normalize fragments and deduplicate link rows.
+- [x] Graph endpoint returns `{nodes, edges}` with every visible note, resolved
+      cross-user targets, unresolved targets, deduplicated edges, and no
+      self-loops.
+- [x] Private target notes stay unresolved for non-owners.
+- [x] Added the graph view with the existing physics, SVG rendering, node
+      labels, unresolved styling, and click-to-open.
+- [x] Added a graph/notes toggle in the profile sidebar.
+- [x] Interactive graph: continuous force simulation, draggable nodes,
+      background pan, wheel zoom, and reset view.
+- [x] Verified existing duplicate links collapse to one edge and unresolved
+      `/test/nn` links remain visible.
 - [ ] Optional: backlinks panel using the `links` table.
 
 ## Phase 6 — Finish

@@ -19,6 +19,20 @@ export async function getUserNotes(
   }
 }
 
+export async function getNotesByPaths(paths: string[]) {
+  if (!paths.length) return []
+  try {
+    return await db
+      .selectFrom("notes")
+      .where("path", "in", paths)
+      .selectAll()
+      .execute()
+  } catch (err) {
+    console.log("error in getNotesByPaths")
+    console.log(err)
+  }
+}
+
 export async function getNote(id: number) {
   try {
     const result = await db

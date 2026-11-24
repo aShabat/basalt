@@ -38,24 +38,87 @@ export function genFolder(
   return folder
 }
 
-export function genGraph(links: Links[]) {
-  const points = Array.from(
-    new Set(links.map((l) => l.from_url)).union(
-      new Set(links.map((l) => l.to_url)),
-    ),
-  )
+function normalizePath(value: string) {
+  const path = value.split(/[?#]/)[0]
+  if (!path) return path
+  try {
+    return decodeURI(path)
+  } catch {
+    return path
+  }
+}
 
-  const edges = []
-  for (let from = 0; from < points.length; from++) {
-    for (let to = from + 1; to < points.length; to++) {
-      const weight = links.filter(
-        ({ from_url, to_url }) =>
-          (from_url === points[from] && to_url === points[to]) ||
-          (from_url === points[to] && to_url === points[from]),
-      ).length
-      if (weight > 0) edges.push({ from, to, weight })
-    }
+export function genGraph(
+  notes: Notes[],
+  links: Links[],
+  targets: Notes[],
+  viewer_id?: number,
+) {
+  const nodes: {
+    id?: number
+    path: string
+    title: string
+    unresolved: boolean
+  }[] = []
+  const indexes = new Map<string, number>()
+
+  function addNode(node: {
+    id?: number
+    path: string
+    title: string
+    unresolved: boolean
+  }) {
+    if (indexes.has(node.path)) return
+    indexes.set(node.path, nodes.length)
+    nodes.push(node)
   }
 
-  return { points, edges }
+  for (const note of notes) {
+    addNode({
+      id: note.id,
+      path: note.path,
+      title: note.title,
+      unresolved: false,
+    })
+  }
+
+  for (const target of targets) {
+    if (target.is_private && target.user_id !== viewer_id) continue
+    addNode({
+      id: target.id,
+      path: target.path,
+      title: target.title,
+      unresolved: false,
+    })
+  }
+
+  const seen = new Set<string>()
+  const edges: { from: number; to: number; weight: number }[] = []
+
+  for (const link of links) {
+    const from = normalizePath(link.from_url)
+    const to = normalizePath(link.to_url)
+    if (!from || !to || from === to) continue
+    if (!indexes.has(from)) continue
+
+    if (!indexes.has(to)) {
+      addNode({
+        path: to,
+        title: to,
+        unresolved: true,
+      })
+    }
+
+    const key = `${from}\u0000${to}`
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    edges.push({
+      from: indexes.get(from)!,
+      to: indexes.get(to)!,
+      weight: 1,
+    })
+  }
+
+  return { nodes, edges }
 }

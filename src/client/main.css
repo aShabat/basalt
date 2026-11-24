@@ -39,6 +39,76 @@ a {
   padding: 0.75rem;
 }
 
+.sidebar_header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.graph_view {
+  width: 100%;
+  position: relative;
+}
+
+.graph_toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.graph_svg {
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.graph_svg:active {
+  cursor: grabbing;
+}
+
+.graph_svg line {
+  stroke: #aaa;
+}
+
+.graph_node {
+  cursor: grab;
+}
+
+.graph_node:active {
+  cursor: grabbing;
+}
+
+.graph_node circle {
+  fill: #4a7fc1;
+}
+
+.graph_node text {
+  font-size: 12px;
+  fill: #333;
+  pointer-events: none;
+  user-select: none;
+}
+
+.graph_node.unresolved circle {
+  fill: #fff;
+  stroke: #999;
+  stroke-dasharray: 3 2;
+}
+
+.graph_node.unresolved text {
+  fill: #999;
+}
+
+.graph_node.active circle {
+  stroke: #d33;
+  stroke-width: 3;
+}
+
 .main_pane {
   overflow: auto;
   padding: 1.5rem 2rem;

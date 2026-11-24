@@ -6,7 +6,7 @@ import { Graph, RootFolder, User } from "../../schemas/types.ts"
 import { sign } from "../auth.ts"
 import { createUser, getUser, getUserByName } from "../models/users.ts"
 import { getUserFolders } from "../models/folders.ts"
-import { getUserNotes } from "../models/notes.ts"
+import { getNotesByPaths, getUserNotes } from "../models/notes.ts"
 import { getUserLinks } from "../models/links.ts"
 import { genFolder, genGraph } from "./helpers.ts"
 import config from "../../config.ts"
@@ -112,15 +112,33 @@ router.get("/:user_id/graph", async (req, res) => {
     return
   }
 
-  const links = await getUserLinks(user_id, req.user?.id === user_id)
-  if (!links) {
+  const include_private = req.user?.id === user_id
+  const notes = await getUserNotes(user_id, include_private)
+  const links = await getUserLinks(user_id, include_private)
+  if (!notes || !links) {
     res
       .status(HttpStatusCode.InternalServerError)
-      .send("couldn't find links")
+      .send("couldn't find notes or links")
     return
   }
 
-  res.json(Graph.parse(genGraph(links)))
+  const ownPaths = new Set(notes.map((note) => note.path))
+  const targetPaths = [
+    ...new Set(
+      links
+        .map((link) => link.to_url.split(/[?#]/)[0])
+        .filter((path) => path && !ownPaths.has(path)),
+    ),
+  ]
+  const targets = await getNotesByPaths(targetPaths)
+  if (!targets) {
+    res
+      .status(HttpStatusCode.InternalServerError)
+      .send("couldn't find link targets")
+    return
+  }
+
+  res.json(Graph.parse(genGraph(notes, links, targets, req.user?.id)))
 })
 
 export default router

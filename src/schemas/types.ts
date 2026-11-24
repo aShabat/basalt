@@ -1,10 +1,22 @@
 import z from "zod"
 
-export const Title = z
+function validPathPart(value: string) {
+  return (
+    !/[/\\#?]/.test(value) &&
+    !/[\u0000-\u001f\u007f]/.test(value) &&
+    value !== "." &&
+    value !== ".."
+  )
+}
+
+export const PathPart = z
   .string()
   .trim()
   .min(1)
-  .refine((title) => !title.includes("/"), "title can't contain /")
+  .refine(validPathPart, "contains invalid path characters")
+
+export const Title = PathPart
+export const UserName = PathPart
 
 export const User = z.object({
   id: z.number(),
@@ -62,8 +74,17 @@ export const RootFolder = GeneralFolder.safeExtend({
 
 export type RootFolder = z.infer<typeof RootFolder>
 
+export const GraphNode = z.object({
+  id: z.number().optional(),
+  path: z.string(),
+  title: z.string(),
+  unresolved: z.boolean(),
+})
+
+export type GraphNode = z.infer<typeof GraphNode>
+
 export const Graph = z.object({
-  points: z.array(z.string()),
+  nodes: z.array(GraphNode),
   edges: z.array(
     z.object({ from: z.number(), to: z.number(), weight: z.number() }),
   ),
