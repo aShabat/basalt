@@ -1,0 +1,27 @@
+/api
+
+  /session
+    post /                  create session (login); sets AuthToken cookie
+    delete /                destroy session (logout); clears AuthToken cookie
+
+  /users
+    post /                  create user (signup)
+    get /                   find users (?name=...)
+    get /me                 authenticated user
+    get /:user_id           user data
+    get /:user_id/tree      folder/note tree
+    get /:user_id/graph     link graph
+
+  /notes
+    post /                  create note (owner from session)
+    get /:note_id           note including content
+    put /:note_id           replace note
+    patch /:note_id         update supplied fields
+    delete /:note_id        delete note
+
+  /folders
+    post /                  create folder (owner from session)
+    get /:folder_id         folder
+    put /:folder_id         replace folder
+    patch /:folder_id       update supplied fields
+    delete /:folder_id      delete folder

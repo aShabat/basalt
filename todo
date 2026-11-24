@@ -1,0 +1,141 @@
+# Basalt prototype action plan
+
+Goal: finish the Obsidian-light prototype: public profiles and notes, owner-only
+editing, markdown notes, wiki-style links, and a link graph. Keep the current
+stack; no rewrite.
+
+Decisions:
+
+- Public read, private write. Anyone can view public profiles, trees, notes, and
+  graphs, including other users' content.
+- Cross-user references are allowed in links. Cross-user edits are not.
+- Notes get `is_private`; private notes are hidden from non-owners. Folders have
+  no privacy flag.
+- Logout clears the session but stays on the current URL. A public note stays
+  visible read-only; a private note redirects to the profile root.
+- Target API is `src/server/routes/route_plan` (REST). Current server routes are
+  the pre-migration API.
+- `npm run init:db` is destructive. Do not run it on the current database.
+  Apply schema changes with SQL and regenerate kanel models.
+
+## Phase 0 — Stabilize current app
+
+- [ ] `src/client/components/App.tsx`: add `[]` to the auth bootstrap effect.
+      It currently refetches the current user on every render.
+- [ ] `src/client/components/NavigationBar.tsx`: after a successful logout,
+      dispatch `logout()`; do not `navigate("/")`. Show an error if logout fails.
+- [ ] `src/client/components/FolderTree.tsx`: gate root-level "new folder" and
+      "new note" buttons with `isEditable`. Stop folder-delete clicks from also
+      toggling the row.
+- [ ] `src/server/routes/folder.ts`: folder update calls `getNote(folder_id)`;
+      change it to `getFolder(folder_id)`. Return after every error response.
+- [ ] `src/server/models/links.ts`: skip the insert when `to_urls` is empty;
+      scope `deleteLinks` by `user_id` as well as `from_url`.
+- [ ] `src/server/routes/helpers.ts`: drop zero-weight graph edges.
+- [ ] `src/client/api.ts`: surface request failures instead of silently
+      returning `undefined`.
+- [ ] Verify: `npx tsc -p src/client --noEmit`, `npm run build`, then manually
+      test signup, login, refresh, logout, create/delete folder, create/edit/
+      delete note.
+
+## Phase 1 — Private notes schema
+
+- [ ] Back up the database:
+      `pg_dump -h localhost -U basalt basalt > /tmp/opencode/basalt-backup.sql`
+- [ ] Apply the non-destructive migration:
+      `ALTER TABLE notes ADD COLUMN is_private boolean NOT NULL DEFAULT false;`
+- [ ] Update `src/extra/init_db.ts` so the canonical schema includes
+      `is_private`.
+- [ ] Extract the kanel generation call from `init_db.ts` into
+      `src/extra/gen_models.ts`; add `npm run gen:models` that regenerates
+      `src/server/models/generated` from the live DB without dropping tables.
+- [ ] Run `npm run gen:models`.
+- [ ] Add `is_private: z.boolean()` to `Note` in `src/schemas/types.ts`.
+      `CreateNote`/`UpdateNote` inherit it.
+- [ ] Verify the new column, generated types, typecheck, and existing notes.
+
+## Phase 2 — REST API migration
+
+Implement `src/server/routes/route_plan`:
+
+- [ ] `POST /api/session`, `DELETE /api/session`.
+- [ ] `POST /api/users`, `GET /api/users`, `GET /api/users/me`,
+      `GET /api/users/:user_id`, `/tree`, `/graph`.
+- [ ] `POST /api/notes`, `GET/PATCH/DELETE /api/notes/:note_id`.
+- [ ] `POST /api/folders`, `GET/PATCH/DELETE /api/folders/:folder_id`.
+- [ ] Owner comes from the session on writes; never from the request body.
+- [ ] Enforce ownership with `where("user_id", "=", req.user.id)` in Kysely for
+      update/delete, not only in route checks.
+- [ ] Add one Express error middleware. Return `400` validation, `401`
+      unauthenticated write, `403` non-owner, `404` missing, `409` duplicate
+      title/name.
+- [ ] Update `src/client/api.ts` to the new endpoints and `PATCH` updates.
+- [ ] Add `getFolder` and `updateFolder` client functions.
+- [ ] Verify all existing flows after migration.
+
+## Phase 3 — Privacy and logout behavior
+
+- [ ] Tree reads accept optional auth: owner sees private notes; everyone else
+      gets public notes only.
+- [ ] `GET /notes/:note_id`: private notes return `404` to non-owners; owner
+      sees them.
+- [ ] Graph: owner includes links from own private notes; other viewers exclude
+      them.
+- [ ] Add an owner-only private checkbox in the note editor.
+- [ ] Show a lock indicator for private notes in the owner's tree.
+- [ ] On login/logout, refetch tree and graph so privacy visibility updates.
+- [ ] Logout keeps the current URL and content when the note is public; the UI
+      becomes read-only and the navbar switches to login/signup.
+- [ ] Logout while viewing an owned private note clears it and redirects to the
+      profile root.
+- [ ] Verify: Bob cannot see Alice's private note in her tree or by direct URL;
+      Alice's public note stays open after logout; Alice's private note
+      redirects after logout; Bob links to Alice's public note successfully.
+
+## Phase 4 — Navigation, editor, and layout
+
+- [ ] Replace title-path parsing with ID routes:
+      `/u/:username`, `/u/:username/notes/:note_id`.
+- [ ] Tree rows navigate by ID; folder rows only expand/collapse.
+- [ ] Build canonical `path` on the server from parent + title; stop accepting
+      client-supplied paths.
+- [ ] Replace `contentEditable` with a markdown textarea and preview toggle or
+      split view.
+- [ ] Add note title editing, dirty state, `Ctrl+S`, and delete confirmation.
+- [ ] Add folder rename/move and note move if cheap; otherwise defer.
+- [ ] Add a three-column layout and basic CSS: tree, note, optional side panel.
+- [ ] Add active-note highlight, auto-expand, loading/empty/error states.
+
+## Phase 5 — Links and graph
+
+- [ ] Parse links with `marked` tokens instead of the broad
+      `\(([^()]+)\)` regex.
+- [ ] Keep `[label](target)` for MVP; add `[[Title]]` only if cheap.
+- [ ] Resolve targets to canonical note paths; keep unresolved links visible.
+- [ ] Graph endpoint: include every note as a point, deduplicate edges, keep
+      isolated notes.
+- [ ] Build the graph page using the existing `Graph.tsx` physics and SVG or
+      canvas rendering.
+- [ ] Clicking a node opens its note; label nodes by title/path.
+- [ ] Optional: backlinks panel using the `links` table.
+
+## Phase 6 — Finish
+
+- [ ] Visible form validation: required names/passwords, password mismatch,
+      duplicate-name conflict.
+- [ ] Add a 404 route and bad-ID handling.
+- [ ] Add a README with Postgres setup, `.env`, run commands, and the
+      `init:db` warning.
+- [ ] Optional demo seed script.
+- [ ] Add `npm run check` = `tsc -p src/client --noEmit && vite build`.
+- [ ] Optional `node --test` tests for `genFolder`, `genGraph`, and link parsing.
+- [ ] Only after the MVP: search, tags, import/export, dark theme, graph zoom,
+      deployment hardening.
+
+## Definition of done
+
+A new user can sign up, create folders and notes, write markdown with links,
+edit/delete content, browse their tree, view a graph, and log out. Public notes
+remain readable anonymously and by other users. Private notes stay owner-only.
+Owners can edit; everyone else is read-only. `npx tsc -p src/client --noEmit`
+and `npm run build` pass.
