@@ -84,9 +84,6 @@ export async function deleteNote(user_id: number, id: number) {
 export async function alterNote(
   user_id: number,
   id: number,
-  folder_id: number | undefined,
-  title: string | undefined,
-  path: string | undefined,
   content: string | undefined,
   is_private: boolean | undefined,
 ) {
@@ -94,11 +91,8 @@ export async function alterNote(
     let query = db
       .updateTable("notes")
       .set({
-        folder_id: folder_id ? (folder_id as FoldersId) : undefined,
-        title,
         content,
         is_private,
-        path,
         date_updated: sql`default`,
       })
       .where("id", "=", id as NotesId)

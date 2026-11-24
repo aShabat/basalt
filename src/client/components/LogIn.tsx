@@ -39,8 +39,8 @@ export default function () {
   return (
     <div id="root">
       <NavigationBar />
-      {error && <div> {error} </div>}
-      <form onSubmit={handleSubmit}>
+      {error && <div className="error"> {error} </div>}
+      <form className="authForm" onSubmit={handleSubmit}>
         <label htmlFor="name_input"> Name: </label>
         <input name="name" id="name_input" />
 

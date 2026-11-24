@@ -1,5 +1,11 @@
 import z from "zod"
 
+export const Title = z
+  .string()
+  .trim()
+  .min(1)
+  .refine((title) => !title.includes("/"), "title can't contain /")
+
 export const User = z.object({
   id: z.number(),
   name: z.string(),
@@ -12,7 +18,7 @@ export const Note = z.object({
   id: z.number(),
   user_id: z.number(),
   folder_id: z.number().optional(),
-  title: z.string(),
+  title: Title,
   content: z.string(),
   is_private: z.boolean(),
   date_added: z.coerce.date(),
@@ -26,7 +32,7 @@ const GeneralFolder = z.object({
   id: z.number().optional(),
   user_id: z.number(),
   parent_id: z.number().optional(),
-  title: z.string().optional(),
+  title: Title.optional(),
   date_added: z.coerce.date().optional(),
   date_updated: z.coerce.date().optional(),
   path: z.string().optional(),
@@ -38,7 +44,7 @@ const GeneralFolder = z.object({
 
 export const Folder = GeneralFolder.safeExtend({
   id: z.number(),
-  title: z.string(),
+  title: Title,
   path: z.string(),
   date_added: z.coerce.date(),
   date_updated: z.coerce.date(),

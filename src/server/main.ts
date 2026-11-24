@@ -43,6 +43,16 @@ app.use((err: unknown, _: Request, res: Response, next: NextFunction) => {
     return
   }
 
+  if (
+    typeof err === "object" &&
+    err &&
+    "code" in err &&
+    err.code === "23505"
+  ) {
+    res.status(HttpStatusCode.Conflict).json({ error: "already exists" })
+    return
+  }
+
   console.log(err)
   res
     .status(HttpStatusCode.InternalServerError)

@@ -1,33 +1,20 @@
 import { useEffect, useState } from "react"
 import FolderTree from "./FolderTree"
 import NavigationBar from "./NavigationBar"
-import { Note, Graph } from "../../schemas/types"
+import { Note } from "../../schemas/types"
 import MarkdownViewer from "./MarkdownViewer"
-import { useNavigate, useParams } from "react-router"
-import { getGraph, getUser } from "../api"
+import { useLocation, useNavigate, useParams } from "react-router"
+import { deleteNote } from "../api"
 import { useAppSelector } from "../store/store"
+import { decodePath, encodePath } from "../paths"
 
 export default function () {
   const { name } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const user = useAppSelector(({ auth }) => auth.user)
-  const [links, setLinks] = useState<Graph>()
   const [currentNote, setCurrentNote] = useState<Note>()
-  const [error, setError] = useState("")
   const [treeVersion, setTreeVersion] = useState(0)
-
-  useEffect(() => {
-    ;(async () => {
-      try {
-        if (!name) return
-        const profile = await getUser({ name })
-        setLinks(await getGraph(profile.id))
-        setError("")
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "couldn't load graph")
-      }
-    })()
-  }, [name, currentNote, user?.id])
 
   useEffect(() => {
     if (!currentNote?.is_private) return
@@ -41,19 +28,44 @@ export default function () {
     setTreeVersion((version) => version + 1)
   }
 
+  function handlePathsChanged(mapping: { from: string; to: string }[]) {
+    const current = currentNote?.path ?? decodePath(location.pathname)
+    const change = mapping.find((item) => item.from === current)
+    if (change) navigate(encodePath(change.to), { replace: true })
+  }
+
+  async function handleDeleteNote() {
+    if (!currentNote) return
+    await deleteNote(currentNote.user_id, currentNote.id)
+    setCurrentNote(undefined)
+    setTreeVersion((version) => version + 1)
+    navigate(name ? `/${name}` : "/")
+  }
+
   return (
-    <div>
+    <div className="app_shell">
       <NavigationBar />
-      {error && <div> {error} </div>}
-      <FolderTree setCurrentNote={setCurrentNote} refreshKey={treeVersion} />
-      {currentNote ? (
-        <MarkdownViewer
-          serverNote={currentNote}
-          setServerNote={handleNoteChange}
-        />
-      ) : (
-        <>{JSON.stringify(links)}</>
-      )}
+      <div className="app_body">
+        <aside className="sidebar">
+          <FolderTree
+            setCurrentNote={setCurrentNote}
+            refreshKey={treeVersion}
+            onPathsChanged={handlePathsChanged}
+          />
+        </aside>
+        <main className="main_pane">
+          {currentNote ? (
+            <MarkdownViewer
+              key={`${currentNote.id}:${currentNote.path}`}
+              serverNote={currentNote}
+              setServerNote={handleNoteChange}
+              onDelete={handleDeleteNote}
+            />
+          ) : (
+            <div className="empty_note">select a note</div>
+          )}
+        </main>
+      </div>
     </div>
   )
 }

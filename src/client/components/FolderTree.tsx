@@ -1,5 +1,6 @@
 import { createContext, Fragment, useContext, useEffect, useState } from "react"
 import { Folder, Note, RootFolder, User } from "../../schemas/types"
+import { RenamePreview } from "../../schemas/api"
 import {
   createFolder,
   createNote,
@@ -8,28 +9,41 @@ import {
   getNote,
   getTree,
   getUser,
+  previewFolderRename,
+  renameFolder,
 } from "../api"
 import { useLocation, useNavigate, useParams } from "react-router"
 import { useAppSelector } from "../store/store"
 import InputField from "./InputField"
+import RenameLinksModal from "./RenameLinksModal"
+import {
+  decodePath,
+  encodePath,
+  findFolderByPath,
+  findNoteIdByPath,
+  isUnderPath,
+} from "../paths"
+
+interface PathMapping {
+  from: string
+  to: string
+}
 
 interface TreeContextState {
   currentUser?: User
-  currentPath: string[]
+  currentPath: string
   isEditable: boolean
   setRootFolder: Function
-  setReloadFlag: Function
-  setCurrentNote: Function
   setError: Function
+  onPathsChanged: Function
 }
 
 const TreeContext = createContext<TreeContextState>({
-  currentPath: [],
+  currentPath: "",
   isEditable: false,
   setRootFolder: () => {},
-  setReloadFlag: () => {},
-  setCurrentNote: () => {},
   setError: () => {},
+  onPathsChanged: () => {},
 })
 
 function errorMessage(err: unknown) {
@@ -39,17 +53,21 @@ function errorMessage(err: unknown) {
 interface Props {
   setCurrentNote: Function
   refreshKey: number
+  onPathsChanged: (mapping: PathMapping[]) => void
 }
-export default function ({ setCurrentNote, refreshKey }: Props) {
+export default function ({
+  setCurrentNote,
+  refreshKey,
+  onPathsChanged,
+}: Props) {
   const { name } = useParams()
   const location = useLocation()
+  const currentPath = decodePath(location.pathname)
   const [currentUser, setCurrentUser] = useState<User>()
   const [rootFolder, setRootFolder] = useState<RootFolder>()
-  const [reloadFlag, setReloadFlag] = useState(false)
   const [newFolderFlag, setNewFolderFlag] = useState(false)
   const [newNoteFlag, setNewNoteFlag] = useState(false)
   const [error, setError] = useState("")
-  const navigate = useNavigate()
   const user = useAppSelector(({ auth }) => auth.user)
   const isEditable = currentUser?.id === user?.id
 
@@ -60,7 +78,6 @@ export default function ({ setCurrentNote, refreshKey }: Props) {
         currentUser!.id,
         undefined,
         title,
-        `/${currentUser!.name}/${title}`,
       )
       if (newRootFolder) setRootFolder(newRootFolder)
       setNewFolderFlag(false)
@@ -72,12 +89,7 @@ export default function ({ setCurrentNote, refreshKey }: Props) {
   async function handleNewNote(title: string) {
     setError("")
     try {
-      const newRootFolder = await createNote(
-        currentUser!.id,
-        undefined,
-        title,
-        `/${currentUser!.name}/${title}`,
-      )
+      const newRootFolder = await createNote(currentUser!.id, undefined, title)
       if (newRootFolder) setRootFolder(newRootFolder)
       setNewNoteFlag(false)
     } catch (err) {
@@ -103,70 +115,54 @@ export default function ({ setCurrentNote, refreshKey }: Props) {
   useEffect(() => {
     ;(async () => {
       if (!currentUser) return
-      if (
-        name &&
-        (!rootFolder || rootFolder.id !== currentUser.id || reloadFlag)
-      ) {
-        setError("")
-        try {
-          const tree = await getTree(currentUser.id)
-          if (tree) setRootFolder(tree)
-          setReloadFlag(false)
-        } catch (err) {
-          setError(errorMessage(err))
-        }
+      setError("")
+      try {
+        const tree = await getTree(currentUser.id)
+        if (tree) setRootFolder(tree)
+      } catch (err) {
+        setError(errorMessage(err))
       }
     })()
   }, [currentUser, user?.id, refreshKey])
 
   useEffect(() => {
     if (!rootFolder || !currentUser) return
-    const path = location.pathname.split("/").slice(1)
-    let folder: RootFolder | Folder = rootFolder
-    for (let i = 1; i < path.length; i++) {
-      const nextFolder: number = folder.children.findIndex(
-        (c) => c.title === path[i],
-      )
-      if (nextFolder > -1) {
-        folder = folder.children[nextFolder]
-        continue
-      }
-      const nextNote = folder.notes.findIndex((n) => n.title === path[i])
-      if (nextNote > -1) {
-        if (i + 1 !== path.length)
-          navigate(`/${path.slice(0, i + 1).join("/")}`)
-        else {
-          ;(async () => {
-            setError("")
-            try {
-              const currentNote = await getNote(folder.notes[nextNote].id)
-              setCurrentNote(currentNote)
-            } catch (err) {
-              setError(errorMessage(err))
-              setCurrentNote(undefined)
-            }
-          })()
+    const note_id = findNoteIdByPath(rootFolder, currentPath)
+    if (note_id) {
+      ;(async () => {
+        setError("")
+        try {
+          setCurrentNote(await getNote(note_id))
+        } catch (err) {
+          setError(errorMessage(err))
+          setCurrentNote(undefined)
         }
-        break
-      }
-
-      navigate(`/${path.slice(0, i).join("/")}`)
-      setCurrentNote(undefined)
+      })()
+      return
     }
-  }, [location, rootFolder])
+    if (
+      currentPath === `/${currentUser.name}` ||
+      findFolderByPath(rootFolder, currentPath)
+    ) {
+      setCurrentNote(undefined)
+      return
+    }
+    setError("couldn't find that note")
+    setCurrentNote(undefined)
+  }, [currentPath, rootFolder, currentUser])
 
   const folders = rootFolder?.children
     .toSorted((a, b) => (a.title < b.title ? -1 : 1))
     .map((c) => (
       <Fragment key={c.id}>
-        <FolderRow folder={c} path={[currentUser!.name]} />
+        <FolderRow folder={c} />
       </Fragment>
     ))
   const notes = rootFolder?.notes
     .toSorted((a, b) => (a.title < b.title ? -1 : 1))
     .map((n) => (
       <Fragment key={n.id}>
-        <NoteRow note={n} path={[currentUser!.name]} />
+        <NoteRow note={n} />
       </Fragment>
     ))
 
@@ -174,16 +170,15 @@ export default function ({ setCurrentNote, refreshKey }: Props) {
     <TreeContext
       value={{
         currentUser,
-        currentPath: location.pathname.split("/").slice(1),
-        setRootFolder,
+        currentPath,
         isEditable,
-        setReloadFlag,
-        setCurrentNote,
+        setRootFolder,
         setError,
+        onPathsChanged,
       }}
     >
-      <div id="root_folder">
-        {error && <div> {error} </div>}
+      <div id="root_folder" className="tree">
+        {error && <div className="error"> {error} </div>}
         {rootFolder ? (
           <>
             {isEditable && (
@@ -219,49 +214,46 @@ export default function ({ setCurrentNote, refreshKey }: Props) {
   )
 }
 
-function isOnPath(path: string[], currentPath: string[]) {
-  if (path.length > currentPath.length) return false
-  for (let i = 0; i < path.length; i++) {
-    if (path[i] !== currentPath[i]) return false
-  }
-  return true
-}
-
 interface FolderRowProps {
   folder: Folder
-  path: string[]
 }
-export function FolderRow({ folder, path: propPath }: FolderRowProps) {
-  const path = [...propPath, folder.title]
-
-  const { currentUser, setRootFolder, isEditable, currentPath, setError } =
-    useContext(TreeContext)
+export function FolderRow({ folder }: FolderRowProps) {
+  const {
+    currentUser,
+    currentPath,
+    setRootFolder,
+    isEditable,
+    setError,
+    onPathsChanged,
+  } = useContext(TreeContext)
+  const [fold, setFold] = useState(!isUnderPath(currentPath, folder.path))
   const [newFolderFlag, setNewFolderFlag] = useState(false)
   const [newNoteFlag, setNewNoteFlag] = useState(false)
+  const [renameFlag, setRenameFlag] = useState(false)
+  const [renameTitle, setRenameTitle] = useState(folder.title)
+  const [renamePreview, setRenamePreview] = useState<RenamePreview>()
+  const [renamePending, setRenamePending] = useState(false)
+  const [renameError, setRenameError] = useState("")
 
-  const initialFold = isOnPath(path, currentPath)
-  const [fold, setFold] = useState(!initialFold)
+  useEffect(() => {
+    if (isUnderPath(currentPath, folder.path)) setFold(false)
+  }, [currentPath, folder.path])
 
   const children = folder.children.map((c) => (
     <Fragment key={c.id}>
-      <FolderRow folder={c} path={path} />
+      <FolderRow folder={c} />
     </Fragment>
   ))
   const notes = folder.notes.map((n) => (
     <Fragment key={n.id}>
-      <NoteRow note={n} path={path} />
+      <NoteRow note={n} />
     </Fragment>
   ))
 
   async function handleNewFolder(title: string) {
     setError("")
     try {
-      const newRootFolder = await createFolder(
-        currentUser!.id,
-        folder.id,
-        title,
-        `${path}/${title}`,
-      )
+      const newRootFolder = await createFolder(currentUser!.id, folder.id, title)
       if (newRootFolder) setRootFolder(newRootFolder)
       setNewFolderFlag(false)
     } catch (err) {
@@ -272,12 +264,7 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
   async function handleNewNote(title: string) {
     setError("")
     try {
-      const newRootFolder = await createNote(
-        currentUser!.id,
-        folder.id,
-        title,
-        `/${path.join("/")}/${title}`,
-      )
+      const newRootFolder = await createNote(currentUser!.id, folder.id, title)
       if (newRootFolder) setRootFolder(newRootFolder)
       setNewNoteFlag(false)
     } catch (err) {
@@ -295,10 +282,42 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
     }
   }
 
+  async function applyRename(title: string) {
+    setRenameError("")
+    setRenamePending(true)
+    try {
+      const result = await renameFolder(folder.id, title)
+      const newRootFolder = await getTree(currentUser!.id)
+      if (newRootFolder) setRootFolder(newRootFolder)
+      setRenameFlag(false)
+      setRenamePreview(undefined)
+      onPathsChanged(result.mapping)
+    } catch (err) {
+      setRenameError(errorMessage(err))
+    } finally {
+      setRenamePending(false)
+    }
+  }
+
+  async function handleRename(title: string) {
+    setRenameError("")
+    setRenameTitle(title)
+    try {
+      const preview = await previewFolderRename(folder.id, title)
+      if (!preview.notes.length) {
+        await applyRename(title)
+        return
+      }
+      setRenamePreview(preview)
+    } catch (err) {
+      setRenameError(errorMessage(err))
+    }
+  }
+
   return (
     <div id={`folder_${folder.id}`} className="folder_row">
-      <div onClick={() => setFold(!fold)}>
-        {folder.title}
+      <div className="folder_label" onClick={() => setFold(!fold)}>
+        <span>{folder.title}</span>
         {isEditable && (
           <>
             <button
@@ -322,6 +341,16 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
             <button
               onClick={(e) => {
                 e.stopPropagation()
+                setFold(false)
+                setRenameTitle(folder.title)
+                setRenameFlag(true)
+              }}
+            >
+              rename
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
                 handleDelete()
               }}
             >
@@ -330,8 +359,35 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
           </>
         )}
       </div>
+      {isEditable && renameFlag && (
+        <InputField
+          name="folder_title"
+          initialValue={folder.title}
+          handleInput={handleRename}
+          handleCancel={() => {
+            setRenameFlag(false)
+            setRenameError("")
+          }}
+        />
+      )}
+      {renameError && !renamePreview && (
+        <div className="error"> {renameError} </div>
+      )}
+      {renamePreview && (
+        <RenameLinksModal
+          preview={renamePreview}
+          pending={renamePending}
+          error={renameError}
+          onCancel={() => {
+            setRenamePreview(undefined)
+            setRenameFlag(false)
+            setRenameError("")
+          }}
+          onConfirm={() => applyRename(renameTitle)}
+        />
+      )}
       {fold || (
-        <>
+        <div className="tree_children">
           {isEditable && newFolderFlag && (
             <InputField
               name="folder_title"
@@ -350,7 +406,7 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
             />
           )}
           {notes}
-        </>
+        </div>
       )}
     </div>
   )
@@ -358,11 +414,9 @@ export function FolderRow({ folder, path: propPath }: FolderRowProps) {
 
 interface NoteRowProps {
   note: Omit<Note, "content">
-  path: string[]
 }
-export function NoteRow({ note, path: propPath }: NoteRowProps) {
-  const path = [...propPath, note.title]
-  const { currentUser, setRootFolder, isEditable, setError } =
+export function NoteRow({ note }: NoteRowProps) {
+  const { currentUser, currentPath, setRootFolder, isEditable, setError } =
     useContext(TreeContext)
   const navigate = useNavigate()
 
@@ -376,11 +430,15 @@ export function NoteRow({ note, path: propPath }: NoteRowProps) {
     }
   }
   function onClick() {
-    navigate(`/${path!.join("/")}`)
+    navigate(encodePath(note.path))
   }
 
   return (
-    <div id={`note_${note.id}`} className="note_row" onClick={onClick}>
+    <div
+      id={`note_${note.id}`}
+      className={note.path === currentPath ? "note_row active" : "note_row"}
+      onClick={onClick}
+    >
       {note.title}
       {note.is_private && " private "}
       {isEditable && (

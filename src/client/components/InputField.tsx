@@ -2,12 +2,18 @@ import { ChangeEvent, FormEvent, useState } from "react"
 
 interface Props {
   name?: string
+  initialValue?: string
   handleInput: Function
   handleCancel: Function
 }
 
-export default function ({ name, handleInput, handleCancel }: Props) {
-  const [value, setValue] = useState("")
+export default function ({
+  name,
+  initialValue,
+  handleInput,
+  handleCancel,
+}: Props) {
+  const [value, setValue] = useState(initialValue || "")
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()

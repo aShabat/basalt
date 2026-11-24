@@ -21,7 +21,10 @@ export default function () {
   return (
     <div>
       {user ? (
-        <a onClick={handleSignOut}> signout </a>
+        <>
+          <Link to={`/${user.name}`}>profile</Link>
+          <a onClick={handleSignOut}> signout </a>
+        </>
       ) : (
         <>
           <Link to="/login">login</Link> <Link to="/signup">signup</Link>

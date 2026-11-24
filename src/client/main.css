@@ -1,18 +1,225 @@
-body {
+html,
+body,
+#root {
   height: 100%;
 }
-#root {
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: #222;
+  background: #fafafa;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  cursor: pointer;
+}
+
+.app_shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app_body {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: 0;
+  flex: 1;
+}
+
+.sidebar {
+  overflow: auto;
+  border-right: 1px solid #ddd;
+  background: #fff;
+  padding: 0.75rem;
+}
+
+.main_pane {
+  overflow: auto;
+  padding: 1.5rem 2rem;
+}
+
+.tree {
+  font-size: 0.95rem;
+}
+
+.tree_children {
+  margin-left: 1rem;
+  border-left: 1px solid #eee;
+  padding-left: 0.4rem;
+}
+
+.folder_label,
+.note_row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.35rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.folder_label:hover,
+.note_row:hover {
+  background: #f1f1f1;
+}
+
+.note_row.active {
+  background: #e3efff;
+}
+
+.folder_label button,
+.note_row button {
+  margin-left: auto;
+  font-size: 0.75rem;
+}
+
+.note_pane {
+  max-width: 900px;
+}
+
+.note_header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.note_header h1 {
+  margin: 0;
+}
+
+.note_title_input {
+  flex: 1;
+  font-size: 1.6rem;
+  font-weight: bold;
+  padding: 0.25rem 0.4rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.dirty {
+  color: #a65b00;
+  font-size: 0.8rem;
+}
+
+.editor {
+  width: 100%;
+  min-height: 320px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.preview {
+  margin-top: 1rem;
+  border-top: 1px dashed #ddd;
+  padding-top: 1rem;
+}
+
+.markdown {
+  line-height: 1.6;
+}
+
+.markdown pre {
+  overflow: auto;
+  background: #f4f4f4;
+  padding: 0.75rem;
+}
+
+.markdown code {
+  background: #f4f4f4;
+  padding: 0.1rem 0.25rem;
+}
+
+.error {
+  color: #a00;
+  margin: 0.5rem 0;
+}
+
+.empty_note {
+  color: #777;
+}
+
+.modal_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 10;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  max-width: 640px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal ul {
+  max-height: 40vh;
+  overflow: auto;
+}
+
+.modal_actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .authForm {
   display: grid;
   grid-template-columns: 40% 60%;
+  max-width: 420px;
 }
 
 .authForm label {
   grid-column: 1;
 }
 
+.authForm button,
+.authForm input {
+  grid-column: 2;
+}
+
 .authForm button {
   grid-column: 1 / 3;
+}
+
+@media (max-width: 800px) {
+  .app_body {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    max-height: 40vh;
+    border-right: 0;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .main_pane {
+    padding: 1rem;
+  }
 }

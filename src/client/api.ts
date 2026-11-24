@@ -5,6 +5,11 @@ import {
   CreateFolder,
   CreateNote,
   LogIn,
+  RenameFolder,
+  RenameFolderResult,
+  RenameNote,
+  RenameNoteResult,
+  RenamePreview,
   SignUp,
   UpdateNote,
 } from "../schemas/api"
@@ -106,9 +111,8 @@ export async function createFolder(
   user_id: number,
   parent_id: undefined | number,
   title: string,
-  path: string,
 ) {
-  const requestBody = CreateFolder.parse({ parent_id, title, path })
+  const requestBody = CreateFolder.parse({ parent_id, title })
   await requestVoid(() => axiosI.post("/folders", requestBody))
   return await getTree(user_id)
 }
@@ -126,32 +130,54 @@ export async function createNote(
   user_id: number,
   folder_id: number | undefined,
   title: string,
-  path: string,
 ) {
-  const requestBody = CreateNote.parse({ folder_id, title, path, content: "" })
+  const requestBody = CreateNote.parse({ folder_id, title, content: "" })
   await requestVoid(() => axiosI.post("/notes", requestBody))
   return await getTree(user_id)
 }
 
 export async function updateNote(
   id: number,
-  folder_id: number | undefined,
-  title: string | undefined,
-  path: string | undefined,
   content: string | undefined,
   is_private?: boolean,
 ) {
-  const requestBody = UpdateNote.parse({
-    title,
-    folder_id,
-    content,
-    path,
-    is_private,
-  })
+  const requestBody = UpdateNote.parse({ content, is_private })
   return request(() => axiosI.patch(`/notes/${id}`, requestBody), Note)
 }
 
 export async function deleteNote(user_id: number, id: number) {
   await requestVoid(() => axiosI.delete(`/notes/${id}`))
   return await getTree(user_id)
+}
+
+export async function previewNoteRename(id: number, title: string) {
+  const requestBody = RenameNote.parse({ title })
+  return request(
+    () => axiosI.post(`/notes/${id}/rename/preview`, requestBody),
+    RenamePreview,
+  )
+}
+
+export async function renameNote(id: number, title: string) {
+  const requestBody = RenameNote.parse({ title })
+  return request(
+    () => axiosI.post(`/notes/${id}/rename`, requestBody),
+    RenameNoteResult,
+  )
+}
+
+export async function previewFolderRename(id: number, title: string) {
+  const requestBody = RenameFolder.parse({ title })
+  return request(
+    () => axiosI.post(`/folders/${id}/rename/preview`, requestBody),
+    RenamePreview,
+  )
+}
+
+export async function renameFolder(id: number, title: string) {
+  const requestBody = RenameFolder.parse({ title })
+  return request(
+    () => axiosI.post(`/folders/${id}/rename`, requestBody),
+    RenameFolderResult,
+  )
 }

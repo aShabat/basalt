@@ -9,12 +9,18 @@ the active action plan; work through it in order unless the user redirects.
 
 - Public read, private write: profiles, trees, notes, and graphs are public,
   including other users' content. Editing requires the owner.
-- Cross-user references are allowed in links; cross-user edits are not.
+- Cross-user references are allowed. Cross-user edits are not, except the
+  confirmed rename flow, which may rewrite link targets inside other users'
+  notes after the preview modal.
 - Notes have `is_private`. Non-owners do not see private notes in trees or
   graphs; direct private note reads return `404`. Folders have no privacy flag.
 - Logout clears the cookie and Redux state but keeps the current URL. A public
   note stays visible read-only; an owned private note redirects to the profile
   root.
+- URLs are canonical note/folder paths (`/test/a/n`). `path` is mutable and
+  updated on rename; the URL is updated to the new path.
+- Renames preview affected markdown links and require confirmation before
+  editing link targets in note content. This can include other users' notes.
 - `src/server/routes/route_plan` is the current REST API. The old
   `/api/user|note|folder` paths are removed.
 
@@ -63,14 +69,16 @@ the active action plan; work through it in order unless the user redirects.
   `src/client/components/`, auth slice in `src/client/store/`. The folder tree
   is rebuilt client-side from `GET /api/users/:user_id/tree`. `App.tsx` waits
   for the auth bootstrap before rendering routes.
-- Navigation paths are built from user/folder/note titles, not DB `path`
-  columns. `path` is a denormalized duplicate also used as link identity
-  (markdown `(target)` links become `from_url`/`to_url`).
+- Navigation uses DB `path` values, not titles or IDs. The tree resolves a
+  decoded URL path to a note/folder and navigates with encoded `path` values.
+  Renames update paths, links, and affected markdown link targets.
 
 ## API quirks
 
-- Creates use `POST /api/{notes,folders}`; updates use `PATCH /:id` (or `PUT`
-  for full replace); deletes use `DELETE /:id`.
+- Creates use `POST /api/{notes,folders}` and compute `path` on the server.
+  `PATCH /notes/:id` updates content/privacy only. Path-changing title edits use
+  `POST /api/{notes,folders}/:id/rename` after `/rename/preview`. `PUT` routes
+  were removed.
 - Public reads: `GET /api/users?name=`, `/api/users/:user_id`,
   `/api/users/:user_id/tree`, `/api/users/:user_id/graph`,
   `/api/notes/:note_id`, `/api/folders/:folder_id`. `GET /api/users/me`
@@ -79,8 +87,9 @@ the active action plan; work through it in order unless the user redirects.
 - Unmatched `/api/*` paths return `404` JSON.
 - Write routes verify the fetched row's `user_id` and filter mutations by owner
   in Kysely.
-- Errors: Zod failures return `400` JSON and unexpected errors return `500`
-  JSON from `main.ts`. Models still log and may return `undefined`.
+- Errors: Zod failures return `400` JSON, duplicate names/titles return `409`,
+  and unexpected errors return `500` JSON from `main.ts`. Models still log and
+  may return `undefined`.
 - Client API helpers throw `ApiError` with the server message; callers handle it
   instead of relying on `undefined`.
 - Server ESM imports mix explicit `.ts` and `.js`; client/shared imports are
