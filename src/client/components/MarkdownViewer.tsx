@@ -20,7 +20,6 @@ export default function ({ serverNote, setServerNote }: Props) {
     setError("")
     try {
       const updatedNote = await updateNote(
-        user!.id,
         serverNote.id,
         undefined,
         undefined,

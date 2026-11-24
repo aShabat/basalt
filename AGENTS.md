@@ -16,8 +16,8 @@ the active action plan; work through it in order unless the user redirects.
 - Logout clears the cookie and Redux state but keeps the current URL. A public
   note stays visible read-only; an owned private note redirects to the profile
   root.
-- `src/server/routes/route_plan` is the target REST API. The running server still
-  uses the older routes until the migration in `todo` lands.
+- `src/server/routes/route_plan` is the current REST API. The old
+  `/api/user|note|folder` paths are removed.
 
 ## Commands
 
@@ -55,26 +55,29 @@ the active action plan; work through it in order unless the user redirects.
 - Shared contract: `src/schemas/types.ts` (entities) and `src/schemas/api.ts`
   (request payloads). Client and server both validate with zod; change these
   first when an API shape changes.
-- Server: `src/server/main.ts` mounts `/api/user`, `/api/note/:user_id`,
-  `/api/folder/:user_id`. `auth.ts` decodes the HttpOnly `AuthToken` JWT into
-  `req.user`; `req.path_user_id` comes from the URL. Routes live in
-  `src/server/routes/`, Kysely queries per table in `src/server/models/`.
+- Server: `src/server/main.ts` mounts `/api/session`, `/api/users`,
+  `/api/notes`, `/api/folders`. `auth.ts` decodes the HttpOnly `AuthToken` JWT
+  into `req.user`; writes take ownership from that user, never from the URL.
+  Routes live in `src/server/routes/`, Kysely queries per table in
+  `src/server/models/`.
 - Client: all HTTP calls in `src/client/api.ts`, pages in
   `src/client/components/`, auth slice in `src/client/store/`. The folder tree
-  is rebuilt client-side from the flat `GET /api/user/tree` response.
+  is rebuilt client-side from `GET /api/users/:user_id/tree`.
 - Navigation paths are built from user/folder/note titles, not DB `path`
   columns. `path` is a denormalized duplicate also used as link identity
   (markdown `(target)` links become `from_url`/`to_url`).
 
 ## API quirks
 
-- Create is `PUT /api/{note,folder}/:user_id`, update is `POST .../:id`,
-  delete is `DELETE .../:id` — not RESTful PUT/PATCH.
-- Reads are public: `GET /api/user`, `/api/user/tree`, `/api/user/graph`
-  accept `?name=` or `?id=` and fall back to the cookie user. `route_plan` is
-  the target REST shape; these are the current pre-migration endpoints.
-- Write routes verify both the URL `:user_id` and the fetched row's `user_id`;
-  keep new writes scoped by owner.
+- Creates use `POST /api/{notes,folders}`; updates use `PATCH /:id` (or `PUT`
+  for full replace); deletes use `DELETE /:id`.
+- Public reads: `GET /api/users?name=`, `/api/users/:user_id`,
+  `/api/users/:user_id/tree`, `/api/users/:user_id/graph`,
+  `/api/notes/:note_id`, `/api/folders/:folder_id`. `GET /api/users/me`
+  requires auth.
+- Unmatched `/api/*` paths return `404` JSON.
+- Write routes verify the fetched row's `user_id` and filter mutations by owner
+  in Kysely.
 - Errors: Zod failures return `400` JSON and unexpected errors return `500`
   JSON from `main.ts`. Models still log and may return `undefined`.
 - Client API helpers throw `ApiError` with the server message; callers handle it

@@ -68,29 +68,38 @@ interface userParams {
   id?: number
 }
 export async function getUser(params?: userParams) {
-  return request(() => axiosI.get("/user", { params }), User)
+  if (params?.name) {
+    return request(
+      () => axiosI.get("/users", { params: { name: params.name } }),
+      User,
+    )
+  }
+  if (params?.id) {
+    return request(() => axiosI.get(`/users/${params.id}`), User)
+  }
+  return request(() => axiosI.get("/users/me"), User)
 }
 
 export async function postUserLogin(name: string, password: string) {
   const requestBody = LogIn.parse({ name, password })
-  return request(() => axiosI.post("/user/login", requestBody), User)
+  return request(() => axiosI.post("/session", requestBody), User)
 }
 
 export async function postUserSignup(name: string, password: string) {
   const requestBody = SignUp.parse({ name, password })
-  return request(() => axiosI.post("/user/signup", requestBody), User)
+  return request(() => axiosI.post("/users", requestBody), User)
 }
 
 export async function deleteLogout() {
-  await requestVoid(() => axiosI.delete("/user/logout"))
+  await requestVoid(() => axiosI.delete("/session"))
 }
 
-export async function getGraph(params?: userParams) {
-  return request(() => axiosI.get("/user/graph", { params }), Graph)
+export async function getGraph(user_id: number) {
+  return request(() => axiosI.get(`/users/${user_id}/graph`), Graph)
 }
 
-export async function getTree(params?: userParams) {
-  return request(() => axiosI.get("/user/tree", { params }), RootFolder)
+export async function getTree(user_id: number) {
+  return request(() => axiosI.get(`/users/${user_id}/tree`), RootFolder)
 }
 
 export async function createFolder(
@@ -100,17 +109,17 @@ export async function createFolder(
   path: string,
 ) {
   const requestBody = CreateFolder.parse({ parent_id, title, path })
-  await requestVoid(() => axiosI.put(`/folder/${user_id}`, requestBody))
-  return await getTree({ id: user_id })
+  await requestVoid(() => axiosI.post("/folders", requestBody))
+  return await getTree(user_id)
 }
 
 export async function deleteFolder(user_id: number, id: number) {
-  await requestVoid(() => axiosI.delete(`/folder/${user_id}/${id}`))
-  return await getTree({ id: user_id })
+  await requestVoid(() => axiosI.delete(`/folders/${id}`))
+  return await getTree(user_id)
 }
 
-export async function getNote(user_id: number, id: number) {
-  return request(() => axiosI.get(`/note/${user_id}/${id}`), Note)
+export async function getNote(id: number) {
+  return request(() => axiosI.get(`/notes/${id}`), Note)
 }
 
 export async function createNote(
@@ -120,12 +129,11 @@ export async function createNote(
   path: string,
 ) {
   const requestBody = CreateNote.parse({ folder_id, title, path, content: "" })
-  await requestVoid(() => axiosI.put(`/note/${user_id}`, requestBody))
-  return await getTree({ id: user_id })
+  await requestVoid(() => axiosI.post("/notes", requestBody))
+  return await getTree(user_id)
 }
 
 export async function updateNote(
-  user_id: number,
   id: number,
   folder_id: number | undefined,
   title: string | undefined,
@@ -133,10 +141,10 @@ export async function updateNote(
   content: string | undefined,
 ) {
   const requestBody = UpdateNote.parse({ title, folder_id, content, path })
-  return request(() => axiosI.post(`/note/${user_id}/${id}`, requestBody), Note)
+  return request(() => axiosI.patch(`/notes/${id}`, requestBody), Note)
 }
 
 export async function deleteNote(user_id: number, id: number) {
-  await requestVoid(() => axiosI.delete(`/note/${user_id}/${id}`))
-  return await getTree({ id: user_id })
+  await requestVoid(() => axiosI.delete(`/notes/${id}`))
+  return await getTree(user_id)
 }

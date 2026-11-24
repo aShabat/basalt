@@ -8,6 +8,7 @@ export async function getUser(id: number) {
       .where("id", "=", id as UsersId)
       .selectAll()
       .execute()
+    if (result.length === 0) return
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
     return result[0]
@@ -24,6 +25,7 @@ export async function getUserByName(name: string) {
       .where("name", "=", name)
       .selectAll()
       .execute()
+    if (result.length === 0) return
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
     return result[0]

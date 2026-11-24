@@ -23,6 +23,7 @@ export async function getNote(id: number) {
       .where("id", "=", id as NotesId)
       .selectAll()
       .execute()
+    if (result.length === 0) return
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
     return result[0]
@@ -61,11 +62,12 @@ export async function createNote(
   }
 }
 
-export async function deleteNote(id: number) {
+export async function deleteNote(user_id: number, id: number) {
   try {
     await db
       .deleteFrom("notes")
       .where("id", "=", id as NotesId)
+      .where("user_id", "=", user_id as UsersId)
       .execute()
     return id
   } catch (err) {
@@ -75,6 +77,7 @@ export async function deleteNote(id: number) {
 }
 
 export async function alterNote(
+  user_id: number,
   id: number,
   folder_id: number | undefined,
   title: string | undefined,
@@ -92,6 +95,7 @@ export async function alterNote(
         date_updated: sql`default`,
       })
       .where("id", "=", id as NotesId)
+      .where("user_id", "=", user_id as UsersId)
       .returningAll()
 
     const result = await query.execute()

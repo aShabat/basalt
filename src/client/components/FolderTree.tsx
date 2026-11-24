@@ -108,7 +108,7 @@ export default function ({ setCurrentNote }: Props) {
       ) {
         setError("")
         try {
-          const tree = await getTree({ name })
+          const tree = await getTree(currentUser.id)
           if (tree) setRootFolder(tree)
           setReloadFlag(false)
         } catch (err) {
@@ -138,10 +138,7 @@ export default function ({ setCurrentNote }: Props) {
           ;(async () => {
             setError("")
             try {
-              const currentNote = await getNote(
-                currentUser.id,
-                folder.notes[nextNote].id,
-              )
+              const currentNote = await getNote(folder.notes[nextNote].id)
               setCurrentNote(currentNote)
             } catch (err) {
               setError(errorMessage(err))

@@ -23,6 +23,7 @@ export async function getFolder(id: number) {
       .where("id", "=", id as FoldersId)
       .selectAll()
       .execute()
+    if (result.length === 0) return
     if (result.length !== 1)
       throw new Error(`expected 1 value, got ${result.length}`)
     return result[0]
@@ -59,11 +60,12 @@ export async function createFolder(
   }
 }
 
-export async function deleteFolder(id: number) {
+export async function deleteFolder(user_id: number, id: number) {
   try {
     await db
       .deleteFrom("folders")
       .where("id", "=", id as FoldersId)
+      .where("user_id", "=", user_id as UsersId)
       .execute()
     return id
   } catch (err) {
@@ -73,6 +75,7 @@ export async function deleteFolder(id: number) {
 }
 
 export async function alterFolder(
+  user_id: number,
   id: number,
   parent_id: number | undefined,
   title: string | undefined,
@@ -88,6 +91,7 @@ export async function alterFolder(
         date_updated: sql`default`,
       })
       .where("id", "=", id as FoldersId)
+      .where("user_id", "=", user_id as UsersId)
       .returningAll()
 
     const result = await query.execute()

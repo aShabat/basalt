@@ -4,7 +4,7 @@ import NavigationBar from "./NavigationBar"
 import { Note, Graph } from "../../schemas/types"
 import MarkdownViewer from "./MarkdownViewer"
 import { useParams } from "react-router"
-import { getGraph } from "../api"
+import { getGraph, getUser } from "../api"
 
 export default function () {
   const { name } = useParams()
@@ -15,7 +15,9 @@ export default function () {
   useEffect(() => {
     ;(async () => {
       try {
-        setLinks(await getGraph({ name }))
+        if (!name) return
+        const user = await getUser({ name })
+        setLinks(await getGraph(user.id))
         setError("")
       } catch (err) {
         setError(err instanceof Error ? err.message : "couldn't load graph")

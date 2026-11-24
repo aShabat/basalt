@@ -44,7 +44,7 @@ Decisions:
 - [x] Added `npm run typecheck` and `npm run check`; nodemon watches schemas and
       config.
 - [x] Verified: typecheck, build, anonymous read, empty-link note creation,
-      cross-user note/folder writes return `403`, invalid login returns `400`,
+      cross-user note/folder writes return `403`, invalid login returns `401`,
       JWT excludes `encrypted_password`.
 
 ## Phase 1 — Private notes schema (done)
@@ -62,26 +62,25 @@ Decisions:
       accepts omitted `is_private` and defaults to public.
 - [x] Verified existing notes remain public, typecheck passes, and note create
       without `is_private` returns `is_private: false`.
-- [ ] Phase 3: enforce privacy in tree, note reads, and graph.
 
-## Phase 2 — REST API migration
+## Phase 2 — REST API migration (done)
 
-Implement `src/server/routes/route_plan`:
-
-- [ ] `POST /api/session`, `DELETE /api/session`.
-- [ ] `POST /api/users`, `GET /api/users`, `GET /api/users/me`,
+- [x] `POST /api/session`, `DELETE /api/session`.
+- [x] `POST /api/users`, `GET /api/users`, `GET /api/users/me`,
       `GET /api/users/:user_id`, `/tree`, `/graph`.
-- [ ] `POST /api/notes`, `GET/PATCH/DELETE /api/notes/:note_id`.
-- [ ] `POST /api/folders`, `GET/PATCH/DELETE /api/folders/:folder_id`.
-- [ ] Owner comes from the session on writes; never from the request body.
-- [ ] Enforce ownership with `where("user_id", "=", req.user.id)` in Kysely for
-      update/delete, not only in route checks.
-- [ ] Add one Express error middleware. Return `400` validation, `401`
-      unauthenticated write, `403` non-owner, `404` missing, `409` duplicate
-      title/name.
-- [ ] Update `src/client/api.ts` to the new endpoints and `PATCH` updates.
-- [ ] Add `getFolder` and `updateFolder` client functions.
-- [ ] Verify all existing flows after migration.
+- [x] `POST /api/notes`, `GET/PATCH/PUT/DELETE /api/notes/:note_id`.
+- [x] `POST /api/folders`, `GET/PATCH/PUT/DELETE /api/folders/:folder_id`.
+- [x] Owner comes from the session on writes; never from the request body.
+- [x] Route checks the fetched row's `user_id`; update/delete queries filter by
+      `user_id` in Kysely.
+- [x] Added `session.ts`; removed old `/api/user|note|folder` mounts and
+      `path_user_id`.
+- [x] Error middleware returns `400` validation, `401` unauthenticated,
+      `403` non-owner, `404` missing, `409` duplicate.
+- [x] Updated `src/client/api.ts` to the new endpoints and `PATCH` updates.
+- [x] Folder/note client helpers refetch the tree after create/delete.
+- [x] Verified all existing flows, old API paths return `404`, and existing data
+      is unchanged.
 
 ## Phase 3 — Privacy and logout behavior
 
