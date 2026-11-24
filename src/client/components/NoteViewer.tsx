@@ -17,6 +17,7 @@ export default function () {
   const [currentNote, setCurrentNote] = useState<Note>()
   const [treeVersion, setTreeVersion] = useState(0)
   const [showGraph, setShowGraph] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   function handleSelectNote(note: Note) {
     setShowGraph(false)
@@ -52,23 +53,45 @@ export default function () {
   return (
     <div className="app_shell">
       <NavigationBar />
-      <div className="app_body">
-        <aside className="sidebar">
-          <div className="sidebar_header">
+      <div className={sidebarOpen ? "app_body" : "app_body sidebar_closed"}>
+        {sidebarOpen && (
+          <aside className="sidebar">
+            <div className="sidebar_header">
+              <button
+                type="button"
+                className="sidebar_toggle"
+                onClick={() => setSidebarOpen(false)}
+                aria-label="hide tree"
+                title="hide tree"
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowGraph(!showGraph)}
+              >
+                {showGraph ? "notes" : "graph"}
+              </button>
+            </div>
+            <FolderTree
+              setCurrentNote={handleSelectNote}
+              refreshKey={treeVersion}
+              onPathsChanged={handlePathsChanged}
+            />
+          </aside>
+        )}
+        <main className="main_pane">
+          {!sidebarOpen && (
             <button
               type="button"
-              onClick={() => setShowGraph(!showGraph)}
+              className="sidebar_toggle sidebar_open"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="show tree"
+              title="show tree"
             >
-              {showGraph ? "notes" : "graph"}
+              ▶
             </button>
-          </div>
-          <FolderTree
-            setCurrentNote={handleSelectNote}
-            refreshKey={treeVersion}
-            onPathsChanged={handlePathsChanged}
-          />
-        </aside>
-        <main className="main_pane">
+          )}
           {showGraph && name ? (
             <GraphView name={name} onOpen={() => setShowGraph(false)} />
           ) : currentNote ? (
