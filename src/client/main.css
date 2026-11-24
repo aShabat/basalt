@@ -204,6 +204,21 @@ a {
   background: #f1f1f1;
 }
 
+.note_link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.note_link:focus-visible {
+  outline: 2px solid #4a7fc1;
+  outline-offset: 1px;
+}
+
 .note_row.active {
   background: #e3efff;
 }

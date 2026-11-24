@@ -19,7 +19,7 @@ import {
   previewFolderRename,
   renameFolder,
 } from "../api"
-import { useLocation, useNavigate, useParams } from "react-router"
+import { Link, useLocation, useParams } from "react-router"
 import { useAppSelector } from "../store/store"
 import InputField from "./InputField"
 import RenameLinksModal from "./RenameLinksModal"
@@ -500,7 +500,6 @@ interface NoteRowProps {
 export function NoteRow({ note }: NoteRowProps) {
   const { currentUser, currentPath, setRootFolder, isEditable, setError } =
     useContext(TreeContext)
-  const navigate = useNavigate()
 
   async function handleDelete() {
     setError("")
@@ -511,21 +510,23 @@ export function NoteRow({ note }: NoteRowProps) {
       setError(errorMessage(err))
     }
   }
-  function onClick() {
-    navigate(encodePath(note.path))
-  }
 
   return (
     <div
       id={`note_${note.id}`}
       className={note.path === currentPath ? "note_row active" : "note_row"}
-      onClick={onClick}
     >
-      <i className="icon ai-file" aria-hidden="true" />
-      {note.title}
-      {note.is_private && (
-        <i className="icon ai-eye-closed" aria-hidden="true" />
-      )}
+      <Link
+        className="note_link"
+        to={encodePath(note.path)}
+        title={note.path}
+      >
+        <i className="icon ai-file" aria-hidden="true" />
+        {note.title}
+        {note.is_private && (
+          <i className="icon ai-eye-closed" aria-hidden="true" />
+        )}
+      </Link>
       {isEditable && (
         <TreeAction
           label="delete note"
