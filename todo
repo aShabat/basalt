@@ -148,13 +148,15 @@ Decisions:
 
 - [ ] Visible form validation: required names/passwords, password mismatch,
       duplicate-name conflict.
-- [ ] Add a 404 route and bad-ID handling.
-- [ ] Add a README with Postgres setup, `.env`, run commands, and the
-      `init:db` warning.
+- [ ] Add a 404 route and bad-path handling.
+- [x] Added `README.md` without database-creation instructions; documents an
+      existing DB configured through `.env`.
+- [x] New users get a public `Welcome` starter note resembling the README.
+- [x] Added GitHub link to the navbar.
 - [ ] Optional demo seed script.
-- [ ] Add `npm run check` = `tsc -p src/client --noEmit && vite build`.
+- [x] `npm run check` exists.
 - [ ] Optional `node --test` tests for `genFolder`, `genGraph`, and link parsing.
-- [ ] Only after the MVP: search, tags, import/export, dark theme, graph zoom,
+- [ ] Only after the MVP: search, tags, import/export, dark theme,
       deployment hardening.
 
 ## Definition of done

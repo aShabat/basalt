@@ -9,6 +9,7 @@ import { getUserFolders } from "../models/folders.ts"
 import { getNotesByPaths, getUserNotes } from "../models/notes.ts"
 import { getUserLinks } from "../models/links.ts"
 import { genFolder, genGraph } from "./helpers.ts"
+import { createStarterNote } from "../starter.ts"
 import config from "../../config.ts"
 
 const router = Router()
@@ -28,6 +29,13 @@ router.post("/", async (req, res) => {
   if (!user) {
     res.status(HttpStatusCode.BadRequest).send("couldn't create a user")
     return
+  }
+
+  try {
+    await createStarterNote(user.id, user.name)
+  } catch (err) {
+    console.log("couldn't create starter note")
+    console.log(err)
   }
 
   const token = sign(user)

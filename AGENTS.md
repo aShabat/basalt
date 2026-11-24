@@ -24,6 +24,9 @@ the active action plan; work through it in order unless the user redirects.
   are percent-encoded.
 - Renames preview affected markdown links and require confirmation before
   editing link targets in note content. This can include other users' notes.
+- Signup creates a public `Welcome` note at `/<username>/Welcome`; existing users
+  are not backfilled.
+- The navbar links to https://github.com/aShabat/basalt_di_final.
 - `src/server/routes/route_plan` is the current REST API. The old
   `/api/user|note|folder` paths are removed.
 
@@ -49,6 +52,8 @@ the active action plan; work through it in order unless the user redirects.
 - Needs local Postgres. `.env` is untracked; `src/config.ts` reads
   `DATABASE_URL` as host plus `DATABASE_USER`, `DATABASE_DB`,
   `DATABASE_PASSWORD`, defaulting to localhost, user `basalt`, db `basalt`.
+  `README.md` intentionally documents only an existing DB, not database
+  creation.
 - Schema has no migrations: `src/extra/init_db.ts` is the canonical schema, but
   `npm run init:db` drops all data. For the existing DB, apply SQL directly and
   run `npm run gen:models`.

@@ -30,6 +30,13 @@ export default function () {
           <Link to="/login">login</Link> <Link to="/signup">signup</Link>
         </>
       )}
+      <a
+        href="https://github.com/aShabat/basalt_di_final"
+        target="_blank"
+        rel="noreferrer"
+      >
+        github
+      </a>
       {error && <span> {error} </span>}
     </div>
   )
