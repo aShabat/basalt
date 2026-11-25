@@ -71,9 +71,10 @@ the active action plan; work through it in order unless the user redirects.
 - Shared contract: `src/schemas/types.ts` (entities) and `src/schemas/api.ts`
   (request payloads). Client and server both validate with zod; change these
   first when an API shape changes.
-- Server: `src/server/main.ts` mounts `/api/session`, `/api/users`,
+- `src/server/main.ts` mounts `/api/session`, `/api/users`,
   `/api/notes`, `/api/folders`. `auth.ts` decodes the HttpOnly `AuthToken` JWT
   into `req.user`; writes take ownership from that user, never from the URL.
+  The listen port comes from `PORT` in `.env`/`src/config.ts`, default `3000`.
   Routes live in `src/server/routes/`, Kysely queries per table in
   `src/server/models/`.
 - Client: all HTTP calls in `src/client/api.ts`, pages in

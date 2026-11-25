@@ -11,9 +11,10 @@ import folderRouter from "./routes/folder.ts"
 import { authMiddleware } from "./auth.ts"
 import { HttpStatusCode } from "axios"
 import { ZodError } from "zod"
+import config from "../config.ts"
 
 const app = express()
-const port = +(process.env.PORT || 3000)
+const port = config.port
 const production = process.env.NODE_ENV === "production"
 
 app.use((req, _, next) => {
