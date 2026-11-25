@@ -35,11 +35,11 @@ the active action plan; work through it in order unless the user redirects.
 - `npm run dev` — single Express + Vite server on port 3000. nodemon restarts
   for `src/server` changes; Vite HMR handles client changes.
 - `npm run build` — client-only build to `dist`.
-- `npm start` — production: `tsx` server serving `dist`.
+- `npm start` — production: `tsx` server serving `dist`; does not load Vite.
 - `npm run init:db` — destructive: drops and recreates all tables, then
   regenerates Kysely types in `src/server/models/generated`.
 - `npm run gen:models` — regenerates Kysely types from the live DB without
-  dropping tables.
+  dropping tables. Needs dev dependencies.
 - `npm run check` — typecheck plus production client build. `npm run typecheck`
   runs the typecheck alone.
 - Do not use `npx tsc --noEmit`: the root tsconfig lacks JSX/client settings
@@ -57,11 +57,14 @@ the active action plan; work through it in order unless the user redirects.
 - Schema has no migrations: `src/extra/init_db.ts` is the canonical schema, but
   `npm run init:db` drops all data. For the existing DB, apply SQL directly and
   run `npm run gen:models`.
-- `src/server/models/generated/` is gitignored kanel output. A fresh clone
-  cannot typecheck or run server code until `npm run init:db` succeeds against
-  a reachable database.
+- `src/server/models/generated/` is committed kanel output; fresh clones can
+  typecheck and start without running `init:db`. Regenerate only when the schema
+  changes.
 - `init_db.ts` reuses `generateModels` from `gen_models.ts`; both load dotenv
   through `src/config.ts`.
+- Production install: build first, then `npm prune --omit=dev` or
+  `npm ci --omit=dev` from a prebuilt tree. `vite`, `vite-express`,
+  `typescript`, kanel, and nodemon are dev-only; `tsx` stays a runtime dependency.
 
 ## Architecture
 

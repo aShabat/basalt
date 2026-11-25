@@ -1,6 +1,8 @@
 import express, { NextFunction, Request, Response } from "express"
-import ViteExpress from "vite-express"
 import cookieParser from "cookie-parser"
+import fs from "node:fs"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import userRouter from "./routes/user.ts"
 import sessionRouter from "./routes/session.ts"
@@ -11,6 +13,8 @@ import { HttpStatusCode } from "axios"
 import { ZodError } from "zod"
 
 const app = express()
+const port = +(process.env.PORT || 3000)
+const production = process.env.NODE_ENV === "production"
 
 app.use((req, _, next) => {
   console.log(req.method, req.path)
@@ -29,6 +33,26 @@ app.use("/api/folders", folderRouter)
 app.use("/api", (_, res) => {
   res.status(HttpStatusCode.NotFound).json({ error: "not found" })
 })
+
+if (production) {
+  const dist = fileURLToPath(new URL("../../dist/", import.meta.url))
+  const index = path.join(dist, "index.html")
+
+  if (!fs.existsSync(index)) {
+    console.log("dist/index.html not found; run npm run build")
+  }
+
+  app.use(express.static(dist))
+  app.use((req, res, next) => {
+    if (req.method !== "GET") {
+      next()
+      return
+    }
+    res.sendFile(index, (err) => {
+      if (err) next(err)
+    })
+  })
+}
 
 app.use((err: unknown, _: Request, res: Response, next: NextFunction) => {
   if (res.headersSent) {
@@ -59,6 +83,13 @@ app.use((err: unknown, _: Request, res: Response, next: NextFunction) => {
     .json({ error: "internal server error" })
 })
 
-ViteExpress.listen(app, 3000, () =>
-  console.log("Server is listening on port 3000..."),
-)
+if (production) {
+  app.listen(port, () =>
+    console.log(`Server is listening on port ${port}...`),
+  )
+} else {
+  const { default: ViteExpress } = await import("vite-express")
+  ViteExpress.listen(app, port, () =>
+    console.log(`Server is listening on port ${port}...`),
+  )
+}

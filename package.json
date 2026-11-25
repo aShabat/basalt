@@ -13,7 +13,6 @@
     "init:db": "tsx src/extra/init_db.ts src/server/models/generated"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
@@ -31,8 +30,6 @@
     "react-router": "^7.13.0",
     "redux": "^5.0.1",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
-    "vite-express": "*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -48,8 +45,9 @@
     "@vitejs/plugin-react": "^4.4.1",
     "kanel": "^3.16.1",
     "kanel-kysely": "^0.8.0",
-    "kanel-zod": "^1.7.0",
     "nodemon": "^3.1.10",
-    "vite": "^6.3.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3",
+    "vite-express": "*"
   }
 }

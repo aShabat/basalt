@@ -37,6 +37,7 @@ DATABASE_DB=basalt
 DATABASE_PORT=5432
 DATABASE_PASSWORD=
 BCRYPT_SALT_ROUNDS=13
+PORT=3000
 ```
 
 `DATABASE_URL` is used as the database host. Optional values fall back to the
@@ -60,6 +61,27 @@ npm run dev
 
 Do not use `npx tsc --noEmit`; the root config does not include the client JSX
 settings.
+
+## Production
+
+Build with development dependencies, then remove them:
+
+```bash
+npm ci
+npm run build
+npm prune --omit=dev
+NODE_ENV=production npm start
+```
+
+The production server uses Express static serving for `dist` and does not load
+Vite or `vite-express`. Generated Kysely models are committed, so production
+does not need kanel or `npm run gen:models`.
+
+If you build outside the server, upload `dist/`, `src/`, `package.json`,
+`package-lock.json`, and the committed generated models, then run
+`npm ci --omit=dev` before starting.
+
+`PORT` defaults to `3000`.
 
 ## Project layout
 
