@@ -1,7 +1,6 @@
 import config from "../config.ts"
 import { Kysely, PostgresDialect, sql } from "kysely"
 import { Pool } from "pg"
-import { generateModels } from "./gen_models.ts"
 
 interface DB {}
 
@@ -103,5 +102,6 @@ await db.schema
   .execute()
 
 if (process.argv.length > 2) {
+  const { generateModels } = await import("./gen_models.ts")
   await generateModels(process.argv[2])
 }
